@@ -1,0 +1,20 @@
+{
+  "name": "Shark App",
+  "short_name": "Sharks",
+  "start_url": "/Shark_cards/",
+  "display": "standalone",
+  "background_color": "#0b1a2f",
+  "theme_color": "#0b1a2f",
+  "icons": [
+    {
+      "src": "https://stepnopog.github.io/Shark_cards/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://stepnopog.github.io/Shark_cards/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
