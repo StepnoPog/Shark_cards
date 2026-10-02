@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+ <link rel="manifest" href="manifest.json">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<meta name="theme-color" content="#0b1a2f">
+ <title>Ocean & Prehistoric · Sharks & Dinos</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+input,textarea,select,button{font-family:inherit}
+ body{min-height:100vh;background:#0b1a2f;overflow-x:hidden;transition:background 0.6s}
+body.mode-dino{background:#0a2a10}
+.ocean-bg{position:fixed;inset:0;z-index:0;transition:background 0.6s}
+.bubbles-container{position:fixed;inset:0;z-index:1;overflow:hidden;pointer-events:none;transition:opacity 0.6s}
+.bubbles-container.fade{opacity:0}
+.bubble{position:absolute;background:rgba(255,255,255,0.3);border:2px solid white;border-radius:50%;animation:floatUp linear infinite}
+body.mode-dino .bubble{background:rgba(255,180,60,0.35);border-color:#ffb040}
+  @keyframes floatUp{0%{transform:translateY(0);opacity:0.7}100%{transform:translateY(-120vh);opacity:0.15}}
+.top-header{position:fixed;top:0;left:0;right:0;height:60px;z-index:60;display:flex;align-items:center;justify-content:center;pointer-events:none;background:linear-gradient(to bottom,rgba(0,10,25,0.55) 0%,rgba(0,10,25,0.25) 60%,rgba(0,10,25,0) 100%);padding:0 14px}
+.top-header .add-shark-btn{pointer-events:auto}
+.top-header .coins-display{position:absolute;right:14px;top:14px;pointer-events:auto;cursor:pointer}
+.depth-scale{position:fixed;left:2px;top:0;width:26px;height:100vh;z-index:10;pointer-events:none;color:white;font-weight:600;text-shadow:0 1px 5px rgba(0,0,0,0.9);background:linear-gradient(to bottom,rgba(0,0,0,0.1),rgba(0,0,0,0.35));border-right:1px solid rgba(255,255,255,0.2)}
+.depth-label{position:absolute;left:0;width:100%;text-align:center;font-size:0.5rem;background:rgba(0,20,40,0.7);padding:2px 0;white-space:nowrap;border-radius:6px}
+.coins-display{background:rgba(0,20,40,0.85);border:2px solid rgba(255,215,0,0.8);color:#ffd700;font-weight:700;font-size:0.95rem;padding:8px 16px;border-radius:40px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(0,0,0,0.5);backdrop-filter:blur(6px)}
+.coins-display .coin-icon{font-size:1.1rem}
+.fish{position:fixed;z-index:20;cursor:pointer;font-size:2rem;user-select:none;pointer-events:auto;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));transition:transform 0.1s}
+.fish:hover{transform:scale(1.15)}
+.coin-pop{position:fixed;z-index:60;color:#fff;font-weight:800;font-size:1.1rem;pointer-events:none;text-shadow:0 0 8px rgba(0,0,0,0.9);animation:coinFloat 1.2s ease-out forwards}
+.coin-pop.common{color:#e0e0e0}
+.coin-pop.uncommon{color:#4caf50;font-size:1.2rem}
+.coin-pop.rare{color:#3a9bd9;font-size:1.3rem}
+.coin-pop.epic{color:#b34cdb;font-size:1.5rem;text-shadow:0 0 12px rgba(179,76,219,0.8),0 0 8px rgba(0,0,0,0.9)}
+.coin-pop.legendary{color:#ff9800;font-size:1.7rem;text-shadow:0 0 16px rgba(255,152,0,0.9),0 0 8px rgba(0,0,0,0.9)}
+@keyframes coinFloat{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-60px);opacity:0}}
+.content{position:relative;z-index:5;padding:80px 12px 100px 38px;max-width:1200px;margin:0 auto}
+.add-shark-btn{background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.7);color:white;padding:10px 20px;border-radius:40px;font-weight:600;font-size:0.95rem;cursor:pointer;display:flex;align-items:center;gap:8px;backdrop-filter:blur(6px);box-shadow:0 4px 12px rgba(0,0,0,0.3)}
+.add-shark-btn:active{transform:scale(0.97)}
+.plus-icon{font-size:1.3rem;line-height:1}
+.ocean-column{position:relative;width:100%}
+.shark-card{position:absolute;width:calc(33.333% - 8px);background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.5);border-radius:18px;overflow:hidden;box-shadow:0 12px 24px -8px rgba(0,0,0,0.5);cursor:pointer;transition:transform 0.2s,border-color 0.2s,box-shadow 0.2s,top 0.4s ease,left 0.4s ease,opacity 0.4s}
+.shark-card:hover{transform:scale(1.03);border-color:rgba(255,255,255,0.9);box-shadow:0 18px 32px -8px black;z-index:50}
+.shark-card.card-hidden{opacity:0;pointer-events:none}
+.img-wrapper{width:100%;aspect-ratio:1/1;background:#0f2a3f;display:flex;align-items:center;justify-content:center;overflow:hidden}
+body.mode-dino .img-wrapper{background:#1a3a1a}
+.img-wrapper img{width:100%;height:100%;object-fit:contain;display:block}
+.image-placeholder{font-size:2.5rem;color:rgba(255,255,255,0.5);user-select:none}
+.shark-name{padding:8px 6px;text-align:center;font-weight:600;font-size:0.8rem;color:white;background:rgba(0,20,40,0.7);border-top:1px solid rgba(255,255,255,0.3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.mode-dino .shark-name{background:rgba(10,40,10,0.75)}
+.shark-depth-badge{position:absolute;top:6px;left:6px;background:rgba(0,20,40,0.85);border:1px solid rgba(255,255,255,0.6);color:white;font-size:0.6rem;font-weight:600;padding:2px 7px;border-radius:20px;z-index:6}
+body.mode-dino .shark-depth-badge{background:rgba(10,40,10,0.85)}
+.shark-wiki-badge{position:absolute;bottom:46px;right:6px;background:rgba(58,155,217,0.9);border:1px solid rgba(255,255,255,0.7);color:white;font-size:0.65rem;font-weight:700;padding:2px 6px;border-radius:20px;z-index:6;text-decoration:none}
+.remove-shark-btn{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(200,30,30,0.75);border:2px solid rgba(255,255,255,0.8);color:white;font-size:14px;font-weight:bold;cursor:pointer;z-index:8;line-height:1;padding:0}
+
+/* Mode switcher (bottom bar) */
+.mode-bar{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:70;display:flex;gap:14px;background:rgba(0,10,25,0.7);padding:8px 12px;border-radius:40px;backdrop-filter:blur(8px);border:2px solid rgba(255,255,255,0.35);box-shadow:0 6px 20px rgba(0,0,0,0.5)}
+.mode-btn{width:52px;height:52px;border-radius:50%;border:2px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.08);font-size:1.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.mode-btn.active{background:rgba(255,255,255,0.25);border-color:#fff;transform:scale(1.08);box-shadow:0 0 16px rgba(255,255,255,0.6)}
+.mode-btn:active{transform:scale(0.94)}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,10,20,0.85);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.show{display:flex}
+.modal-content{background:linear-gradient(145deg,#0a2a4a,#051a30);max-width:900px;width:100%;max-height:90vh;border-radius:36px;border:2px solid rgba(255,255,255,0.7);display:flex;flex-direction:row;overflow:hidden;position:relative;color:white}
+body.mode-dino .modal-content{background:linear-gradient(145deg,#1a3a1a,#0a1a08)}
+.modal-left{flex:1.2;padding:18px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;border-right:1px solid rgba(255,255,255,0.2);background:#03111e}
+body.mode-dino .modal-left{background:#0a1a08}
+.big-image-area{width:100%;min-height:200px;max-height:60vh;border-radius:24px;border:2px solid white;background:#0f2a3f;display:flex;align-items:center;justify-content:center;font-size:5rem;color:rgba(255,255,255,0.5);cursor:pointer;overflow:hidden}
+body.mode-dino .big-image-area{background:#1a3a1a}
+.big-image-area img{width:100%;height:auto;max-height:60vh;object-fit:contain;display:block}
+.url-img-btn{background:rgba(58,155,217,0.8);border:2px solid rgba(255,255,255,0.6);color:white;padding:8px 14px;border-radius:14px;font-weight:600;font-size:0.85rem;cursor:pointer;margin-top:8px;width:100%}
+.url-img-btn:active{transform:scale(0.97)}
+body.mode-dino .url-img-btn{background:rgba(76,175,80,0.8)}
+  .video-wrapper{width:100%;aspect-ratio:16/9;border-radius:20px;border:2px solid rgba(255,255,255,0.6);background:#0a1a2a;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden}
+.video-wrapper iframe{width:100%;height:100%;border:0;display:block}
+.video-placeholder{font-size:2.5rem;color:rgba(255,255,255,0.5);user-select:none}
+.modal-right{flex:1.8;padding:24px 22px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;background:rgba(0,0,0,0.2)}
+.modal-right h2{font-size:2rem;font-weight:700;border-bottom:3px solid #3a9bd9;padding-bottom:8px;padding-right:50px}
+body.mode-dino .modal-right h2{border-bottom-color:#4caf50}
+.info-row{display:flex;flex-direction:column;gap:6px;background:rgba(255,255,255,0.06);padding:14px 16px;border-radius:20px;border-left:6px solid #3a9bd9}
+body.mode-dino .info-row{border-left-color:#4caf50}
+.info-label{font-size:0.8rem;text-transform:uppercase;letter-spacing:2px;opacity:0.7}
+.editable-input{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);color:white;padding:8px 12px;border-radius:12px;font-size:1.05rem;font-weight:600;width:100%;outline:none;font-family:inherit}
+.danger-bar-track{width:100%;height:22px;background:rgba(255,255,255,0.15);border-radius:40px;border:1px solid rgba(255,255,255,0.4);overflow:hidden}
+.danger-bar-fill{height:100%;border-radius:40px;background:#4caf50;width:0%;transition:width 0.2s,background 0.2s}
+.danger-text-label{display:flex;justify-content:space-between;font-size:0.85rem;margin-top:6px;opacity:0.8}
+.danger-slider{width:100%;margin-top:8px;accent-color:#3a9bd9}
+body.mode-dino .danger-slider{accent-color:#4caf50}
+.close-btn{position:absolute;top:16px;right:20px;background:rgba(255,255,255,0.2);border:2px solid white;color:white;width:44px;height:44px;border-radius:50%;font-size:24px;cursor:pointer;z-index:10}
+.save-btn{background:#3a9bd9;border:none;color:white;padding:10px 24px;border-radius:40px;font-weight:700;font-size:0.95rem;cursor:pointer;align-self:flex-start}
+body.mode-dino .save-btn{background:#4caf50}
+
+/* Shop */
+.sign-hanger{margin-bottom:-4px;position:relative;z-index:3;display:block}
+  .shop-overlay{position:fixed;inset:0;background:rgba(0,10,20,0.85);z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
+.shop-overlay.show{display:flex}
+.shop-content{background:rgba(120,20,20,0.55);backdrop-filter:blur(8px);border:2px solid rgba(255,80,80,0.7);border-radius:28px;max-width:520px;width:100%;min-height:340px;max-height:85vh;position:relative;color:white;padding:40px 20px 20px;box-shadow:0 25px 50px -10px black;display:flex;flex-direction:column;align-items:center;overflow-y:auto}
+body.mode-dino .shop-content{background:rgba(180,90,10,0.55);border-color:rgba(255,160,60,0.8)}
+.shop-content h2{font-size:2.2rem;font-weight:800;letter-spacing:1px;text-align:center;margin-bottom:20px;text-shadow:0 2px 12px rgba(0,0,0,0.7);color:#fff5e0}
+.shop-content .shop-close{position:absolute;top:12px;right:16px;background:rgba(255,255,255,0.2);border:2px solid white;color:white;width:38px;height:38px;border-radius:50%;font-size:22px;cursor:pointer;line-height:1}
+.shop-subtitle{font-size:0.85rem;font-weight:400;color:#fff;opacity:0.85;letter-spacing:0.5px;text-align:center;margin-top:-14px;margin-bottom:14px}
+.shop-arrr{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2.2rem;font-weight:900;color:#fff;text-shadow:0 0 20px rgba(255,255,255,0.9),0 4px 16px rgba(0,0,0,0.9);opacity:0;pointer-events:none;letter-spacing:3px;z-index:5;white-space:nowrap;max-width:100%}
+.shop-arrr.play{animation:arrrFade 2.4s ease-out forwards}
+@keyframes arrrFade{0%{opacity:0;transform:translate(-50%,-50%) scale(4);filter:blur(12px)}12%{opacity:1;transform:translate(-50%,-50%) scale(1);filter:blur(0)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.15) rotate(-2deg)}28%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(2deg)}45%{opacity:1;transform:translate(-50%,-50%) scale(1.05) rotate(0deg)}100%{opacity:0;transform:translate(-50%,-70%) scale(1.3);filter:blur(4px)}}
+.shop-tabs{display:flex;gap:8px;width:100%;margin:10px 0 4px}
+.shop-tab{flex:1;background:rgba(0,0,0,0.3);border:2px solid rgba(255,180,180,0.5);color:#fff5e0;padding:8px;border-radius:12px;font-weight:700;font-size:0.85rem;cursor:pointer}
+.shop-tab.active{background:rgba(255,215,0,0.25);border-color:#ffd700}
+.shop-panel{width:100%;display:none;flex-direction:column;gap:10px}
+.shop-panel.active{display:flex}
+.shop-items{width:100%;display:flex;flex-direction:column;gap:12px;margin-top:8px}
+.shop-item{background:rgba(0,0,0,0.3);border:2px solid rgba(255,180,180,0.6);border-radius:16px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.shop-item-info{display:flex;flex-direction:column;gap:2px;text-align:left}
+.shop-item-name{font-weight:700;font-size:1rem;color:#fff5e0}
+.shop-item-price{font-size:0.8rem;opacity:0.8;color:#ffd700}
+.shop-buy-btn{background:#3a9bd9;border:none;color:white;padding:8px 16px;border-radius:20px;font-weight:700;font-size:0.85rem;cursor:pointer;white-space:nowrap}
+.shop-result{background:rgba(0,0,0,0.45);border-left:4px solid #ffd700;border-radius:10px;padding:12px 14px;margin-top:10px;font-size:0.95rem;line-height:1.45;color:#fff5e0;text-align:left;width:100%;display:none}
+.shop-result.show{display:block;animation:fadeIn 0.3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.inv-cat{margin-top:12px}
+.inv-cat-title{font-size:0.75rem;letter-spacing:2px;text-transform:uppercase;opacity:0.7;color:#ffd700;margin-bottom:6px;text-align:left}
+.inv-item{background:rgba(0,0,0,0.35);border-left:4px solid #888;border-radius:10px;padding:10px 12px;font-size:0.9rem;line-height:1.4;color:#fff5e0;text-align:left;margin-bottom:8px;position:relative}
+.inv-item.common{border-left-color:#9aa0a6}
+.inv-item.uncommon{border-left-color:#4caf50}
+.inv-item.rare{border-left-color:#3a9bd9}
+.inv-item.epic{border-left-color:#b34cdb}
+.inv-item.legendary{border-left-color:#ff9800}
+.inv-item .inv-tag{font-size:0.65rem;text-transform:uppercase;letter-spacing:1.5px;opacity:0.75;display:block;margin-bottom:3px}
+.inv-empty{opacity:0.6;font-style:italic;text-align:center;padding:20px 0;color:#fff5e0;font-size:0.9rem}/* Fisherman + Hen seller shared */
+.shop-fish-btn{width:100%;background:linear-gradient(135deg,#8b5a2b,#5c3a1a);border:2px solid rgba(255,200,120,0.7);color:#fff5e0;padding:12px 16px;border-radius:16px;font-weight:700;font-size:0.95rem;cursor:pointer;margin-top:10px;letter-spacing:0.5px}
+.shop-fish-btn:active{transform:scale(0.97)}
+.fish-overlay{position:fixed;inset:0;background:rgba(0,10,20,0.9);z-index:300;display:none;align-items:center;justify-content:center;padding:14px}
+.fish-overlay.show{display:flex}
+.fish-content{background:linear-gradient(160deg,#3a2414,#1c0f05);border:2px solid rgba(200,150,80,0.8);border-radius:24px;max-width:560px;width:100%;min-height:520px;max-height:92vh;position:relative;color:white;padding:16px;display:flex;flex-direction:column;overflow:hidden}
+.fish-close{position:absolute;top:10px;right:14px;background:rgba(255,255,255,0.15);border:2px solid white;color:white;width:36px;height:36px;border-radius:50%;font-size:20px;cursor:pointer;line-height:1;z-index:20}
+.fish-title{text-align:center;font-size:1.3rem;font-weight:800;color:#ffe6a0;margin-bottom:10px;letter-spacing:1px}
+.fish-layout{display:flex;gap:14px;flex:1;min-height:0}
+.fish-left{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;position:relative;min-width:0;padding-bottom:0;min-height:340px}
+.fish-right{flex:1.1;overflow-y:auto;padding-right:4px;min-width:0}
+.speech-bubble{position:absolute;bottom:60%;right:100%;margin-right:12px;background:#3a9bd9;color:#fff;padding:6px 10px;border-radius:12px;font-size:0.75rem;line-height:1.2;width:max-content;max-width:120px;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,0.5);opacity:0;transition:opacity 0.3s;font-weight:600;z-index:5}
+  .speech-bubble::after{content:'';position:absolute;top:14px;left:100%;width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-left:10px solid #3a9bd9}
+.speech-bubble.show{opacity:1}
+  .speech-bubble.hen::after{border-left-color:#d88b2a}
+.speech-bubble.hen{background:#d88b2a;top:140px;bottom:auto;right:100%;left:auto;margin-right:6px;max-width:110px;width:max-content;padding:3px 12px;font-size:0.65rem;line-height:0.95}
+  .fish-desk{width:100%;height:80px;background:linear-gradient(to bottom,#8b5a2b,#5c3a1a);border:2px solid #3a2414;border-radius:6px;position:relative;margin-top:0;box-shadow:0 6px 14px rgba(0,0,0,0.5)}
+.fish-desk::after{content:'';position:absolute;left:8%;right:8%;top:-8px;height:10px;background:#a06a35;border-radius:4px}
+.fisherman{width:130px;height:160px;position:relative;margin-bottom:-30px;transition:filter 0.3s,transform 0.1s;z-index:3}
+.fisherman.pressed{transform:scale(0.92)}
+.fisherman .f-head{width:64px;height:64px;border-radius:50%;background:#f2c69b;margin:0 auto;position:relative;border:2px solid #7a4a1a;z-index:1}
+.fisherman .f-body{width:100px;height:76px;background:#4a6a3a;margin:-10px auto 0;border-radius:20px 20px 8px 8px;border:2px solid #2a3a1a}
+.fisherman .f-hat{position:absolute;top:-18px;left:50%;transform:translateX(-50%);width:84px;height:30px;background:#3a4a7a;border-radius:8px 8px 2px 2px;border:2px solid #1c2a4a;z-index:3}
+.fisherman .f-hat::after{content:'';position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:96px;height:12px;background:#3a4a7a;border-radius:50%;border:2px solid #1c2a4a;border-top:none;z-index:3}
+.fisherman .f-eye{position:absolute;top:26px;width:8px;height:8px;background:#1a1a1a;border-radius:50%;z-index:2}
+.fisherman .f-eye.l{left:18px}
+.fisherman .f-eye.r{right:18px}
+.fisherman .f-mouth{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);width:20px;height:4px;background:#7a4a1a;border-radius:2px;transition:height 0.15s;z-index:2}
+.fisherman.talking .f-mouth{height:14px;border-radius:3px 3px 10px 10px;background:#3a1010}
+.fisherman.angry-1 .f-head{background:#eaa07a}
+.fisherman.angry-2 .f-head{background:#e08262}
+.fisherman.angry-3 .f-head{background:#d76545}
+.fisherman.angry-4 .f-head{background:#c94530}
+.fisherman.angry-5 .f-head{background:#b02010}
+.fisherman.angry .f-head{background:#e05a4a}
+.fisherman.angry .f-mouth{width:20px;height:14px;background:#8a1a0a;border-radius:10px 10px 3px 3px}
+.fisherman.angry .f-eye{background:#8a1a0a}
+
+/* Hen */
+ .hen{width:130px;height:160px;position:relative;margin-top:0;margin-bottom:-30px;transition:transform 0.1s;z-index:3}
+.hen.pressed{transform:scale(0.92)}
+.hen .h-head{width:60px;height:60px;border-radius:50%;background:#f8e8c0;margin:0 auto;position:relative;border:2px solid #8a6a2a;z-index:1}
+.hen .h-body{width:100px;height:80px;background:#e8c98a;margin:-8px auto 0;border-radius:50% 50% 40% 40%;border:2px solid #8a6a2a;position:relative;z-index:1}
+.hen .h-wing{position:absolute;top:40px;width:30px;height:40px;background:#e8d4a8;border:2px solid #8a6a2a;border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;z-index:3}
+.hen .h-wing.l{left:8px;transform:rotate(-25deg)}
+.hen .h-wing.r{right:8px;transform:rotate(25deg)}
+.hen .h-foot{position:absolute;bottom:-8px;width:18px;height:10px;background:#e8a02a;border:2px solid #8a6a2a;border-radius:50%;z-index:1}
+.hen .h-foot.l{left:26px}
+.hen .h-foot.r{right:26px}.hen .h-beak{position:absolute;top:32px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:16px solid #e8a02a;z-index:3;transition:transform 0.15s}
+.hen.talking .h-beak{transform:translateX(-50%) rotateX(50deg) scaleY(0.6)}
+.hen .h-comb{position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:26px;height:16px;background:#e03030;border-radius:50% 50% 20% 20%;z-index:2}
+.hen .h-eye{position:absolute;top:22px;width:7px;height:7px;background:#1a1a1a;border-radius:50%;z-index:2}
+.hen .h-eye.l{left:18px}
+.hen .h-eye.r{right:18px}
+.hen .h-witch-hat{position:absolute;top:-64px;left:50%;transform:translateX(-50%);width:76px;height:80px;z-index:3}
+.hen .h-witch-hat::before{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:76px;height:14px;background:#1c1c1c;border-radius:50%;border:2px solid #000}
+.hen .h-witch-hat::after{content:'';position:absolute;bottom:10px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:26px solid transparent;border-right:26px solid transparent;border-bottom:60px solid #2a2a2a}
+.hen .h-witch-hat .h-buckle{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:12px;height:12px;background:#d4a020;border:2px solid #8a6a20;border-radius:3px;z-index:4}
+
+.closed-bar{position:absolute;top:0;left:0;right:0;bottom:0;background:#6b4423;border-radius:16px;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;z-index:8;overflow:hidden}
+.closed-bar.show{display:flex}
+.wood-plank{position:absolute;left:0;right:0;height:2px;background:rgba(0,0,0,0.35);box-shadow:0 2px 0 rgba(255,255,255,0.06)}
+.wood-plank:nth-of-type(1){top:25%}
+.wood-plank:nth-of-type(2){top:50%}
+.wood-plank:nth-of-type(3){top:75%}
+.closed-sign{background:#000;border:2px solid #000;border-radius:8px;padding:20px 40px;box-shadow:0 8px 20px rgba(0,0,0,0.7),inset 0 2px 4px rgba(255,255,255,0.05);display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;z-index:2;margin-bottom:20px}
+.closed-sign-time{font-size:2.4rem;font-weight:900;color:#fff;letter-spacing:3px;text-shadow:0 0 8px rgba(255,255,255,0.4)}
+.closed-sign-label{font-size:0.85rem;font-weight:700;color:#fff;letter-spacing:4px;opacity:0.85}
+.panic-sell-btn{position:relative;z-index:2;background:#8b5a2b;border:2px solid #4a2c15;color:#fff5e0;padding:12px 20px;border-radius:6px;font-weight:700;font-size:0.85rem;cursor:pointer;margin-top:10px;box-shadow:0 4px 0 #4a2c15,0 6px 10px rgba(0,0,0,0.4);display:inline-flex;align-items:center;gap:8px}
+.panic-sell-btn:active{transform:translateY(2px);box-shadow:0 2px 0 #4a2c15,0 4px 8px rgba(0,0,0,0.4)}
+.panic-sell-btn .nail{width:8px;height:8px;border-radius:50%;background:#aaa;box-shadow:inset 0 1px 1px rgba(0,0,0,0.6),0 1px 1px rgba(255,255,255,0.2);position:absolute}
+.panic-sell-btn .nail.tl{top:6px;left:6px}
+.panic-sell-btn .nail.tr{top:6px;right:6px}
+.panic-sell-btn:active{transform:scale(0.96)}
+.panic-sell-btn:disabled{background:#555;border-color:#777;opacity:0.6;cursor:not-allowed}
+.fish-item{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.35);border-radius:10px;padding:8px 10px;margin-bottom:8px;border-left:4px solid #8b5a2b}
+.fish-item .fi-emoji{font-size:1.6rem;flex-shrink:0}
+.fish-item .fi-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.fish-item .fi-name{font-size:0.8rem;opacity:0.7;text-transform:capitalize}
+.fish-item .fi-price{font-size:0.85rem;font-weight:700;color:#ffd700}
+.fish-item .fi-price.wanted{color:#4caf50}
+.fish-item .fi-price.unwanted{color:#e05a4a}
+.fish-item .fi-price.bad{color:#888;text-decoration:line-through}
+.fish-item .fi-sell{background:#3a9bd9;border:none;color:white;padding:6px 10px;border-radius:14px;font-size:0.75rem;font-weight:700;cursor:pointer;flex-shrink:0}
+.fish-item .fi-sell:disabled{background:#555;opacity:0.6;cursor:not-allowed}
+.fish-item .fi-qty{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.fish-item .fi-qty button{width:24px;height:24px;border-radius:50%;background:#3a9bd9;border:none;color:white;font-weight:800;font-size:0.9rem;cursor:pointer;line-height:1;padding:0}
+.fish-item .fi-qty button:disabled{background:#555;opacity:0.5;cursor:not-allowed}
+.fish-item .fi-qty .fi-qty-num{min-width:22px;text-align:center;font-weight:700;font-size:0.85rem;color:#ffd700}
+.fish-item .fi-row{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.fish-empty{opacity:0.6;font-style:italic;text-align:center;padding:20px 0;color:#fff5e0;font-size:0.85rem}
+@media (max-width:700px){.content{padding:80px 12px 100px 34px}.shark-card{width:calc(33.333% - 6px)}.modal-content{flex-direction:column;max-height:95vh}.modal-left{flex-direction:row;flex-wrap:wrap;border-right:none;border-bottom:1px solid rgba(255,255,255,0.2)}.big-image-area{width:40%}.video-wrapper{width:55%}}
+@media (max-width:480px){.content{padding:80px 12px 100px 30px}.shark-card{width:calc(33.333% - 4px)}.shark-name{font-size:0.55rem;padding:4px 3px}.big-image-area{width:100%}.video-wrapper{width:100%}.add-shark-btn{padding:8px 16px;font-size:0.85rem}.remove-shark-btn{width:20px;height:20px;font-size:12px}.shark-depth-badge{font-size:0.5rem}.depth-scale{width:22px}.coins-display{font-size:0.75rem;padding:6px 12px}.fish{font-size:1.6rem}.shop-content h2{font-size:1.6rem}.fish-layout{flex-direction:column}.fish-left{height:160px}.mode-btn{width:46px;height:46px;font-size:1.5rem}}
+.iucn-scale{display:flex;gap:6px;flex-wrap:wrap;justify-content:space-between;margin-top:4px}
+.iucn-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;flex:1;min-width:0}
+.iucn-letter{width:34px;height:34px;border-radius:50%;border:2px solid rgba(255,255,255,0.6);background:rgba(255,255,255,0.08);color:#fff;font-weight:800;font-size:0.75rem;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.iucn-name{font-size:0.5rem;opacity:0.7;text-align:center;line-height:1.1}
+.iucn-item:hover .iucn-letter{transform:scale(1.1)}
+.iucn-item.selected .iucn-letter{color:#fff;box-shadow:0 0 12px rgba(255,255,255,0.6);transform:scale(1.15)}
+
+.iucn-item[data-code="EX"].selected .iucn-letter{background:#1a1a1a;border-color:#555}
+.iucn-item[data-code="EW"].selected .iucn-letter{background:#3a3a3a;border-color:#666}
+.iucn-item[data-code="CR"].selected .iucn-letter{background:#d32f2f;border-color:#ff6060}
+.iucn-item[data-code="EN"].selected .iucn-letter{background:#f57c00;border-color:#ffb060}
+.iucn-item[data-code="VU"].selected .iucn-letter{background:#fbc02d;border-color:#ffe060;color:#222}
+.iucn-item[data-code="NT"].selected .iucn-letter{background:#7cb342;border-color:#b0e070;color:#222}
+.iucn-item[data-code="LC"].selected .iucn-letter{background:#388e3c;border-color:#80d080}
+
+.map-box{margin-top:8px;min-height:80px;border:2px dashed rgba(255,255,255,0.4);border-radius:12px;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.map-box img{width:100%;height:auto;display:block;border-radius:10px}
+.map-empty{font-size:0.8rem;opacity:0.5;font-style:italic;color:#fff}
+.gear-btn{position:fixed;top:14px;left:34px;z-index:61;width:36px;height:36px;border-radius:50%;background:rgba(120,120,120,0.7);border:2px solid rgba(255,255,255,0.7);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);line-height:1}
+.gear-btn:active{transform:scale(0.94)}
+
+.settings-overlay{position:fixed;inset:0;background:rgba(0,10,20,0.85);z-index:400;display:none;align-items:center;justify-content:center;padding:14px}
+.settings-overlay.show{display:flex}
+.settings-window{background:#4a4a4a;border:2px solid rgba(255,255,255,0.5);border-radius:22px;max-width:520px;width:100%;height:85vh;max-height:85vh;position:relative;color:#fff;padding:20px 18px 14px;box-shadow:0 25px 50px -10px black;display:flex;flex-direction:column;overflow:hidden}
+.settings-window h2{font-size:1.4rem;font-weight:800;text-align:center;margin-bottom:4px;color:#fff}
+.settings-sub{font-size:0.75rem;opacity:0.7;text-align:center;margin-bottom:14px}
+.settings-close{position:absolute;top:10px;right:14px;background:rgba(255,255,255,0.2);border:2px solid white;color:white;width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer;line-height:1;z-index:5}
+
+.settings-scroll{flex:1;overflow-y:auto;padding-right:8px;display:flex;flex-direction:column;gap:14px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.4) transparent}
+.settings-scroll::-webkit-scrollbar{width:6px}
+.settings-scroll::-webkit-scrollbar-track{background:rgba(0,0,0,0.2);border-radius:3px}
+.settings-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.4);border-radius:3px}
+
+.sound-cat{background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:10px 12px}
+.sound-cat-title{font-size:0.85rem;font-weight:700;margin-bottom:6px;color:#fff}
+.sound-cat input[type="text"]{width:100%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);color:#fff;padding:6px 10px;border-radius:8px;font-size:0.75rem;outline:none;margin-bottom:6px;font-family:inherit}
+.sound-cat input[type="text"]::placeholder{color:rgba(255,255,255,0.4)}
+.sound-row{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.sound-btn{background:#2a6edb;border:none;color:#fff;padding:5px 10px;border-radius:8px;font-size:0.7rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.sound-btn.add{background:#5a8f3a}
+.sound-btn.test{background:#8a5a2a}
+.sound-btn:active{transform:scale(0.95)}
+.sound-name{font-size:0.65rem;opacity:0.65;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sound-vol-row{display:flex;align-items:center;gap:8px}
+.sound-vol-row label{font-size:0.65rem;opacity:0.7;min-width:36px}
+.sound-vol-row input[type="range"]{flex:1;accent-color:#2a6edb}
+.sound-vol-row .sound-vol-val{font-size:0.65rem;opacity:0.8;min-width:30px;text-align:right}
+.sound-clear{background:#8a2a2a;border:none;color:#fff;padding:4px 8px;border-radius:6px;font-size:0.65rem;font-weight:700;cursor:pointer;margin-left:auto}
+
+.settings-overlay .hidden{display:none !important}
+#settingsOverlay.show{display:flex !important}
+#settingsOverlay{display:none}
+</style>
+</head>
+<body>
+<div class="ocean-bg" id="oceanBg"></div>
+<div class="bubbles-container" id="bubblesContainer"></div>
+<div class="depth-scale" id="depthScale"></div>
+ <button id="gearBtn" type="button" style="position:fixed;top:14px;left:34px;z-index:999;width:36px;height:36px;border-radius:50%;background:rgba(120,120,120,0.85);border:2px solid white;color:white;font-size:18px;cursor:pointer;line-height:1;padding:0">⚙</button>
+  <div class="top-header">
+<button class="add-shark-btn" id="addSharkBtn" type="button"><span class="plus-icon">+</span> <span id="addBtnLabel">Add Shark</span></button>
+<div class="coins-display" id="coinsDisplay"><span class="coin-icon">🪙</span><span id="coinsCount">0</span></div>
+</div>
+<div class="content"><div class="ocean-column" id="oceanColumn"></div></div>
+<div class="mode-bar">
+<button class="mode-btn active" id="modeShark" type="button" title="Sharks">🦈</button>
+<button class="mode-btn" id="modeDino" type="button" title="Dinosaurs">🦖</button>
+</div><div class="modal-overlay" id="modalOverlay">
+<div class="modal-content">
+<button class="close-btn" id="closeModalBtn" type="button">×</button>
+<div class="modal-left">
+<div class="big-image-area" id="bigImageArea">✕</div> <button class="url-img-btn" id="urlImgBtn" type="button">🔗 Paste image URL</button>
+<div class="video-wrapper" id="videoWrapper"><div class="video-placeholder">▶ ✕</div></div>
+</div>
+<div class="modal-right">
+<h2 id="modalTitle">Shark</h2>
+
+<div class="info-row"><span class="info-label">Name</span><input type="text" class="editable-input" id="nameInput" placeholder="Shark name"></div>
+<div class="info-row"><span class="info-label" id="czechLabel">Czech name</span><input type="text" class="editable-input" id="czechInput" placeholder="Auto-filled"></div>
+<div class="info-row"><span class="info-label" id="sciLabel">Scientific name</span><input type="text" class="editable-input" id="sciInput" placeholder="e.g. Carcharodon carcharias"></div>
+
+<div class="info-row"><span class="info-label">Danger level</span>
+<div class="danger-bar-track"><div class="danger-bar-fill" id="dangerBarFill"></div></div>
+<div class="danger-text-label"><span>Low</span><span id="dangerLabelText">Low (0%)</span><span>High</span></div>
+<input type="range" class="danger-slider" id="dangerSlider" min="0" max="100" value="0">
+</div>
+<div class="info-row"><span class="info-label">Extinction status (IUCN)</span>
+<div class="iucn-scale" id="iucnScale">
+<div class="iucn-item" data-code="EX"><span class="iucn-letter">EX</span><span class="iucn-name">Extinct</span></div>
+<div class="iucn-item" data-code="EW"><span class="iucn-letter">EW</span><span class="iucn-name">Extinct in Wild</span></div>
+<div class="iucn-item" data-code="CR"><span class="iucn-letter">CR</span><span class="iucn-name">Critically Endangered</span></div>
+<div class="iucn-item" data-code="EN"><span class="iucn-letter">EN</span><span class="iucn-name">Endangered</span></div>
+<div class="iucn-item" data-code="VU"><span class="iucn-letter">VU</span><span class="iucn-name">Vulnerable</span></div>
+<div class="iucn-item" data-code="NT"><span class="iucn-letter">NT</span><span class="iucn-name">Near Threatened</span></div>
+<div class="iucn-item" data-code="LC"><span class="iucn-letter">LC</span><span class="iucn-name">Least Concern</span></div>
+</div>
+</div>
+
+  <div class="info-row"><span class="info-label" id="depthLabel">Depth (meters)</span><input type="number" class="editable-input" id="depthInput" placeholder="e.g. 200" min="0" max="9999" inputmode="numeric"></div>
+<div class="info-row"><span class="info-label">Map image URL</span>
+<input type="text" class="editable-input" id="mapInput" placeholder="Paste URL for map image...">
+<div class="map-box" id="mapBox"><span class="map-empty">Add URL for a map</span></div>
+</div>
+  
+<div class="info-row"><span class="info-label">Description</span><textarea class="editable-input" id="descInput" placeholder="Describe it..." rows="3" style="resize:vertical"></textarea></div>
+
+<div class="info-row"><span class="info-label">Diet</span><input type="text" class="editable-input" id="foodInput" placeholder="What does it eat?"></div>
+
+<div class="info-row"><span class="info-label">Wikipedia link</span><input type="text" class="editable-input" id="wikiInput" placeholder="https://en.wikipedia.org/wiki/..."></div>
+<a id="wikiLink" target="_blank" rel="noopener" style="display:none;color:#3a9bd9;font-weight:600;font-size:0.9rem;text-decoration:underline;margin-top:-4px">📖 Read more on Wikipedia</a>
+
+<button class="save-btn" id="saveBtn" type="button">Save Changes</button>
+</div>
+</div>
+</div>
+
+<div class="shop-overlay" id="shopOverlay">
+<div class="shop-content">
+<button class="shop-close" id="shopCloseBtn" type="button">×</button>
+<h2 id="shopTitle">Pirate shop</h2>
+<p class="shop-subtitle" id="shopSubtitle">Go catch those fish, matey!</p>
+<button class="shop-fish-btn" id="openFishermanBtn" type="button">🎣 Visit Fisherman</button> <button class="shop-fish-btn" id="openHenBtn" type="button" style="display:none">🐔 Visit Magic Hen</button>
+<div class="shop-arrr" id="shopArrr">Arrrrrrrrr!</div>
+<div class="shop-tabs">
+<button class="shop-tab active" id="tabBuy" type="button">Buy</button>
+<button class="shop-tab" id="tabInv" type="button">Inventory</button>
+</div>
+<div class="shop-panel active" id="panelBuy">
+<div class="shop-items">
+<div class="shop-item">
+<div class="shop-item-info">
+<span class="shop-item-name" id="jokeName">Sea Joke</span>
+<span class="shop-item-price" id="jokePrice">🪙 100 coins</span>
+</div>
+<button class="shop-buy-btn" id="buyJokeBtn" type="button">Buy</button>
+</div>
+<div class="shop-item">
+<div class="shop-item-info">
+<span class="shop-item-name" id="factName">Sea Fact</span>
+<span class="shop-item-price" id="factPrice">🪙 200 coins</span>
+</div>
+<button class="shop-buy-btn" id="buyFactBtn" type="button">Buy</button>
+</div>
+</div>
+<div class="shop-result" id="shopResult"></div>
+</div>
+<div class="shop-panel" id="panelInv">
+<div id="inventoryList"></div>
+</div>
+</div>
+</div>
+
+<div class="fish-overlay" id="fishOverlay">
+<div class="fish-content">
+<button class="fish-close" id="fishCloseBtn" type="button">×</button>
+<div class="fish-title" id="fishTitle">🎣 The Fisherman</div>
+<div class="fish-layout">
+<div class="fish-left">
+<div style="position:relative;margin-bottom:0;margin-left:160px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
+<div class="speech-bubble" id="speechBubble">Ahoy!</div>
+<div class="fisherman" id="fishermanBody">
+<div class="f-hat"></div>
+<div class="f-head"><div class="f-eye l"></div><div class="f-eye r"></div><div class="f-mouth"></div></div>
+<div class="f-body"></div>
+</div>
+</div>
+<div class="fish-desk"></div>
+</div>
+<div class="fish-right">
+<div id="fishItems"></div>
+</div>
+</div>
+<div class="closed-bar" id="closedBar">
+<div class="wood-plank"></div>
+<div class="wood-plank"></div>
+<div class="wood-plank"></div>
+<svg class="sign-hanger" viewBox="0 0 40 26" width="40" height="26"><polygon points="20,24 2,2 38,2" fill="none" stroke="#4a2c15" stroke-width="2" stroke-linejoin="round"/></svg>
+<div class="closed-sign">
+<div class="closed-sign-time" id="closedCountdown">20:00</div>
+<div class="closed-sign-label">CLOSED</div>
+</div>
+<button class="panic-sell-btn" id="panicSellBtn" type="button"><span class="nail tl"></span><span class="nail tr"></span>Sell everything for 50% off</button>
+<button class="panic-sell-btn" id="calmBtn" type="button"><span class="nail tl"></span><span class="nail tr"></span>Pay him 100 🪙 to calm down</button>
+</div>
+</div>
+</div>
+
+<div class="fish-overlay" id="henOverlay">
+<div class="fish-content" style="background:linear-gradient(160deg,#3a2a10,#1c1208);border-color:rgba(200,160,80,0.8)">
+<button class="fish-close" id="henCloseBtn" type="button">×</button>
+<div class="fish-title" style="color:#ffd080">🐔 Magic Hen</div>
+<div class="fish-layout">
+<div class="fish-left">
+<div style="position:relative;margin-bottom:0;margin-left:160px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
+<div class="speech-bubble hen" id="henSpeech">Cocodaak!</div>
+<div class="hen" id="henBody">
+<div class="h-witch-hat"><div class="h-buckle"></div></div>
+<div class="h-head"><div class="h-comb"></div><div class="h-eye l"></div><div class="h-eye r"></div><div class="h-beak"></div></div>
+<div class="h-body"><div class="h-wing l"></div><div class="h-wing r"></div><div class="h-foot l"></div><div class="h-foot r"></div></div>
+</div>
+</div>
+<div class="fish-desk"></div>
+</div>
+<div class="fish-right">
+<div id="henItems"></div>
+</div>
+</div>
+</div>
+</div><script>
+  // @ts-nocheck
+var METERS_PER_PIXEL = 2.5;
+var currentMode = 'shark';
+var sharks=[
+{name:"Great White Shark",image:null,food:"Fish, seals, sea lions, dolphins",description:"A large predatory shark found in coastal surface waters.",depth:250,dangerLevel:90,videoId:null},
+{name:"Hammerhead Shark",image:null,food:"Stingrays, squid, octopus",description:"Easily recognized by its flattened head.",depth:80,dangerLevel:55,videoId:null},
+{name:"Tiger Shark",image:null,food:"Turtles, birds, fish, seals",description:"A large shark named for its dark stripes.",depth:350,dangerLevel:85,videoId:null},
+{name:"Whale Shark",image:null,food:"Plankton, krill, small fish",description:"The largest fish in the world. A gentle filter-feeder.",depth:700,dangerLevel:15,videoId:null},
+{name:"Bull Shark",image:null,food:"Fish, dolphins, turtles",description:"Aggressive shark that can survive in freshwater.",depth:150,dangerLevel:80,videoId:null},
+{name:"Mako Shark",image:null,food:"Mackerel, tuna, swordfish",description:"The fastest shark in the ocean.",depth:500,dangerLevel:60,videoId:null},
+{name:"Oceanic Whitetip",image:null,food:"Fish, squid, sea birds",description:"A bold open-ocean shark with white-tipped fins.",depth:180,dangerLevel:75,videoId:null},
+{name:"Blue Shark",image:null,food:"Squid, small fish, crustaceans",description:"A slender, long-distance traveler.",depth:400,dangerLevel:25,videoId:null},
+{name:"Nurse Shark",image:null,food:"Crustaceans, mollusks, small fish",description:"A slow-moving bottom-dweller.",depth:70,dangerLevel:10,videoId:null}
+];
+var dinos=[
+{name:"Tyrannosaurus Rex",image:null,food:"Other dinosaurs, carcasses",description:"A massive apex predator of the Late Cretaceous.",depth:66,dangerLevel:95,videoId:null},
+{name:"Triceratops",image:null,food:"Plants, ferns, cycads",description:"A three-horned herbivore with a bony frill.",depth:66,dangerLevel:40,videoId:null},
+{name:"Velociraptor",image:null,food:"Small dinosaurs, eggs",description:"A small feathered predator, quick and clever.",depth:75,dangerLevel:70,videoId:null},
+{name:"Stegosaurus",image:null,food:"Low-lying plants, ferns",description:"A plated herbivore with a spiked tail.",depth:150,dangerLevel:45,videoId:null},
+{name:"Brachiosaurus",image:null,food:"Treetop leaves, conifers",description:"A towering long-necked herbivore.",depth:154,dangerLevel:30,videoId:null},
+{name:"Spinosaurus",image:null,food:"Fish, small dinosaurs",description:"A sail-backed predator that swam in rivers.",depth:99,dangerLevel:88,videoId:null},
+{name:"Ankylosaurus",image:null,food:"Low plants, shrubs",description:"An armored tank with a club tail.",depth:66,dangerLevel:50,videoId:null},
+{name:"Pteranodon",image:null,food:"Fish, small animals",description:"A flying reptile with a long crest.",depth:86,dangerLevel:35,videoId:null},
+{name:"Mosasaurus",image:null,food:"Fish, ammonites, plesiosaurs",description:"A giant marine reptile ruling the seas.",depth:70,dangerLevel:85,videoId:null}
+];
+
+var sharkNames={
+"great white shark":{cz:"Žralok bílý",sci:"Carcharodon carcharias"},
+"hammerhead shark":{cz:"Klínočelý žralok",sci:"Sphyrna mokarran"},
+"tiger shark":{cz:"Žralok tygří",sci:"Galeocerdo cuvier"},
+"whale shark":{cz:"Žralok obrovský",sci:"Rhincodon typus"},
+"bull shark":{cz:"Žralok bělavý",sci:"Carcharhinus leucas"},
+"mako shark":{cz:"Žralok mako",sci:"Isurus oxyrinchus"},
+"oceanic whitetip":{cz:"Žralok bělocípý",sci:"Carcharhinus longimanus"},
+"blue shark":{cz:"Žralok modrý",sci:"Prionace glauca"},
+"nurse shark":{cz:"Žralok šedý",sci:"Ginglymostoma cirratum"},
+"greenland shark":{cz:"Žralok grónský",sci:"Somniosus microcephalus"},
+"goblin shark":{cz:"Žralok skřet",sci:"Mitsukurina owstoni"},
+"megamouth shark":{cz:"Žralok velkoústý",sci:"Megachasma pelagios"},
+"thresher shark":{cz:"Žralok liščí",sci:"Alopias vulpinus"},
+"lemon shark":{cz:"Žralok citronový",sci:"Negaprion brevirostris"},
+"sand tiger shark":{cz:"Žralok písečný",sci:"Carcharias taurus"},
+"zebra shark":{cz:"Žralok zebrovitý",sci:"Stegostoma fasciatum"},
+"angel shark":{cz:"Žralok andělský",sci:"Squatina squatina"}
+};
+var dinoNames={
+"tyrannosaurus rex":{cz:"Tyrannosaurus",sci:"Tyrannosaurus rex"},
+"t-rex":{cz:"Tyrannosaurus",sci:"Tyrannosaurus rex"},
+"triceratops":{cz:"Triceratops",sci:"Triceratops horridus"},
+"velociraptor":{cz:"Velociraptor",sci:"Velociraptor mongoliensis"},
+"stegosaurus":{cz:"Stegosaurus",sci:"Stegosaurus stenops"},
+"brachiosaurus":{cz:"Brachiosaurus",sci:"Brachiosaurus altithorax"},
+"spinosaurus":{cz:"Spinosaurus",sci:"Spinosaurus aegyptiacus"},
+"ankylosaurus":{cz:"Ankylosaurus",sci:"Ankylosaurus magniventris"},
+"pteranodon":{cz:"Pteranodon",sci:"Pteranodon longiceps"},
+"mosasaurus":{cz:"Mosasaurus",sci:"Mosasaurus hoffmannii"}
+};
+function lookupNames(name){
+  if(!name)return null;
+  var key=name.toLowerCase().trim();
+  var dict = currentMode==='dino' ? dinoNames : sharkNames;
+  if(dict[key])return dict[key];
+  for(var k in dict){if(key.indexOf(k)!==-1)return dict[k];}
+  for(var k2 in dict){if(k2.indexOf(key)!==-1)return dict[k2];}
+  return null;
+}
+
+/* Data getters */
+function getData(){return currentMode==='dino'?dinos:sharks;}
+function setData(arr){if(currentMode==='dino')dinos=arr;else sharks=arr;}
+function dataKey(){return currentMode==='dino'?'dinoAppData':'sharkAppData';}
+
+var coins=0;
+try{
+  var s1=localStorage.getItem('sharkAppData');if(s1){var p1=JSON.parse(s1);if(p1&&p1.length)sharks=p1;}
+  var s2=localStorage.getItem('dinoAppData');if(s2){var p2=JSON.parse(s2);if(p2&&p2.length)dinosaurs=s2;}
+}catch(e){}
+try{var sc=localStorage.getItem('sharkAppCoins');if(sc){coins=parseInt(sc)||0;}}catch(e){}
+try{var sm=localStorage.getItem('sharkAppMode');if(sm){currentMode=sm;}}catch(e){}
+
+function saveData(){try{localStorage.setItem(dataKey(),JSON.stringify(getData()));}catch(e){alert('Could not save.');}}
+function saveCoins(){try{localStorage.setItem('sharkAppCoins',String(coins));}catch(e){}}
+function saveMode(){try{localStorage.setItem('sharkAppMode',currentMode);}catch(e){}}
+function updateCoinsDisplay(){document.getElementById('coinsCount').textContent=coins;}
+
+var editingIndex=-1;
+var oceanColumn=document.getElementById('oceanColumn');
+var modalOverlay=document.getElementById('modalOverlay');
+var modalTitle=document.getElementById('modalTitle');
+var nameInput=document.getElementById('nameInput');
+var czechInput=document.getElementById('czechInput');
+var sciInput=document.getElementById('sciInput');
+var foodInput=document.getElementById('foodInput');
+var depthInput=document.getElementById('depthInput');
+var mapInput=document.getElementById('mapInput');
+var mapBox=document.getElementById('mapBox');
+var iucnScale=document.getElementById('iucnScale');
+  var descInput=document.getElementById('descInput');
+var wikiInput=document.getElementById('wikiInput');
+var wikiLink=document.getElementById('wikiLink');
+var dangerSlider=document.getElementById('dangerSlider');
+var dangerBarFill=document.getElementById('dangerBarFill');
+var dangerLabelText=document.getElementById('dangerLabelText');
+var bigImageArea=document.getElementById('bigImageArea');
+var videoWrapper=document.getElementById('videoWrapper');
+var closeModalBtn=document.getElementById('closeModalBtn');
+var saveBtn=document.getElementById('saveBtn');
+var addSharkBtn=document.getElementById('addSharkBtn');
+var addBtnLabel=document.getElementById('addBtnLabel');
+var shopOverlay=document.getElementById('shopOverlay');
+var shopCloseBtn=document.getElementById('shopCloseBtn');
+var coinsDisplay=document.getElementById('coinsDisplay');
+var modeSharkBtn=document.getElementById('modeShark');
+var modeDinoBtn=document.getElementById('modeDino');
+var czechLabel=document.getElementById('czechLabel');
+var sciLabel=document.getElementById('sciLabel');
+var depthLabel=document.getElementById('depthLabel');
+var shopTitle=document.getElementById('shopTitle');
+var shopSubtitle=document.getElementById('shopSubtitle');
+var jokeName=document.getElementById('jokeName');
+var factName=document.getElementById('factName');
+var shopArrr=document.getElementById('shopArrr');
+
+function roundDepth(v){
+  v=parseInt(v)||0;
+  if(v<100)return Math.round(v/10)*10;
+  return Math.round(v/100)*100;
+}
+  function dangerColor(v){if(v>70)return '#f44336';if(v>40)return '#ff9800';return '#4caf50';}
+function dangerLabel(v){if(v>70)return 'High';if(v>40)return 'Moderate';return 'Low';}var depthBlocks=[];
+function renderOcean(){
+  oceanColumn.innerHTML='';depthBlocks=[];
+  var data=getData();
+  var byDepth={};
+for(var i=0;i<data.length;i++){
+  var exact=data[i].depth||0;
+  var d=roundDepth(exact); /* group by the ROUNDED value */
+  if(!byDepth[d])byDepth[d]=[];
+  byDepth[d].push(i);
+}
+  var depthKeys=Object.keys(byDepth).map(Number).sort(function(a,b){return a-b;});
+  var CARD_HEIGHT=210,ROW_GAP=8,MIN_BLOCK=120,y=0;
+  for(var k=0;k<depthKeys.length;k++){
+    var depth=depthKeys[k],group=byDepth[depth];
+    var rows=Math.ceil(group.length/3);
+    var neededHeight=rows*CARD_HEIGHT+Math.max(0,(rows-1))*ROW_GAP;
+    var nextDepth=(k+1<depthKeys.length)?depthKeys[k+1]:(depth+100);
+    var naturalGapPx=(nextDepth-depth)*METERS_PER_PIXEL;
+    if(naturalGapPx<MIN_BLOCK)naturalGapPx=MIN_BLOCK;
+    var blockHeight=Math.max(naturalGapPx,neededHeight+ROW_GAP);
+    var top=y;
+    depthBlocks.push({depth:depth,top:top,height:blockHeight,sharks:group});
+    y=top+blockHeight;
+  }
+  oceanColumn.style.height=(y+300)+'px';
+  for(var b=0;b<depthBlocks.length;b++){
+    var block=depthBlocks[b],group=block.sharks,blockTop=block.top;
+    for(var g=0;g<group.length;g++){
+      var idx=group[g],item=data[idx];
+      var card=buildCard(item,idx);
+      var row=Math.floor(g/3),col=g%3;
+      var cardTop=blockTop+row*(CARD_HEIGHT+ROW_GAP);
+      card.style.top=cardTop+'px';
+      card.style.left='calc('+(col*33.333)+'% + '+(col*6)+'px)';
+      oceanColumn.appendChild(card);
+    }
+  }
+  drawDepthScale();
+}
+function buildCard(item,idx){
+  var card=document.createElement('div');card.className='shark-card';
+  var imgWrapper=document.createElement('div');imgWrapper.className='img-wrapper';
+  if(item.image){var img=document.createElement('img');img.src=item.image;imgWrapper.appendChild(img);}
+  else{var ph=document.createElement('div');ph.className='image-placeholder';ph.textContent='✕';imgWrapper.appendChild(ph);}
+  var nameDiv=document.createElement('div');nameDiv.className='shark-name';nameDiv.textContent=item.name||'Unnamed';
+  var badge=document.createElement('div');badge.className='shark-depth-badge';
+  badge.textContent=currentMode==='dino'?((item.depth||0)+' mya'):((item.depth||0)+' m');
+  var delBtn=document.createElement('button');delBtn.className='remove-shark-btn';delBtn.type='button';delBtn.textContent='×';
+  delBtn.onclick=function(e){e.stopPropagation();if(confirm('Remove "'+(item.name||'Unnamed')+'"?')){getData().splice(idx,1);saveData();renderOcean();}};
+  card.appendChild(badge);card.appendChild(delBtn);
+  if(item.wiki){var wb=document.createElement('a');wb.className='shark-wiki-badge';wb.textContent='W';wb.href=item.wiki;wb.target='_blank';wb.rel='noopener';wb.onclick=function(e){e.stopPropagation();};card.appendChild(wb);}
+  card.appendChild(imgWrapper);card.appendChild(nameDiv);
+  card.onclick=function(){openModal(idx);};
+  return card;
+}
+function drawDepthScale(){
+  var scale=document.getElementById('depthScale');
+  var olds=scale.querySelectorAll('.depth-label');
+  for(var i=0;i<olds.length;i++)olds[i].remove();
+  var unit=currentMode==='dino'?' mya':' m';
+  for(var b=0;b<depthBlocks.length;b++){
+    var block=depthBlocks[b];
+    var lbl=document.createElement('div');lbl.className='depth-label';
+    if(currentMode==='dino'){   lbl.innerHTML=block.depth+'<br><span style="font-size:0.4rem;opacity:0.85">mya</span>';   lbl.style.padding='2px 0';   lbl.style.lineHeight='1.05'; }else{   lbl.textContent=block.depth+' m'; }
+    lbl.dataset.depth=block.depth;lbl.dataset.docTop=block.top;lbl.style.top=block.top+'px';
+    scale.appendChild(lbl);
+  }
+}
+iucnScale.onclick=function(e){
+  var item=e.target.closest('.iucn-item');
+  if(!item)return;
+  var items=iucnScale.querySelectorAll('.iucn-item');
+  for(var i=0;i<items.length;i++)items[i].classList.remove('selected');
+  item.classList.add('selected');
+  if(editingIndex>=0){
+    getData()[editingIndex].iucn=item.getAttribute('data-code');
+    saveData();
+  }
+};
+  function openModal(index){
+  editingIndex=index;
+  var item=getData()[index];if(!item)return;
+  modalTitle.textContent=item.name||'Unnamed';
+  nameInput.value=item.name||'';
+  foodInput.value=item.food||'';
+  depthInput.value=item.depth||0;
+  descInput.value=item.description||'';
+  wikiInput.value=item.wiki||'';
+  if(item.wiki){wikiLink.href=item.wiki;wikiLink.style.display='inline-block';}else{wikiLink.style.display='none';}
+  if(!item.czech||!item.sci){
+    var meta=lookupNames(item.name);
+    if(meta){czechInput.value=item.czech||meta.cz;sciInput.value=item.sci||meta.sci;}
+    else{czechInput.value=item.czech||'';sciInput.value=item.sci||'';}
+  }else{czechInput.value=item.czech;sciInput.value=item.sci;}
+  var level=item.dangerLevel||0;
+  dangerSlider.value=level;
+  dangerBarFill.style.width=level+'%';
+  dangerBarFill.style.background=dangerColor(level);
+  dangerLabelText.textContent=dangerLabel(level)+' ('+level+'%)';
+  /* IUCN selection */
+var items=iucnScale.querySelectorAll('.iucn-item');
+for(var ui=0;ui<items.length;ui++)items[ui].classList.remove('selected');
+if(item.iucn){
+  for(var uj=0;uj<items.length;uj++){
+    if(items[uj].getAttribute('data-code')===item.iucn)items[uj].classList.add('selected');
+  }
+}
+/* Map image */
+mapInput.value=item.map||'';
+if(item.map){
+  mapBox.innerHTML='<img src="'+item.map+'" alt="map" onerror="this.parentNode.innerHTML=\'<span class=&quot;map-empty&quot;>Could not load image</span>\'">';
+}else{
+  mapBox.innerHTML='<span class="map-empty">Add URL for a map</span>';
+}
+    bigImageArea.innerHTML='';
+  if(item.image){var img=document.createElement('img');img.src=item.image;bigImageArea.appendChild(img);}
+  else{bigImageArea.textContent='✕';}
+  videoWrapper.innerHTML='';
+  if(item.videoId){var iframe=document.createElement('iframe');iframe.src='https://www.youtube.com/embed/'+item.videoId+'?rel=0';iframe.allowFullscreen=true;videoWrapper.appendChild(iframe);}
+  else{var vph=document.createElement('div');vph.className='video-placeholder';vph.textContent='▶ ✕';videoWrapper.appendChild(vph);}
+  modalOverlay.classList.add('show');
+}
+function closeModal(){modalOverlay.classList.remove('show');editingIndex=-1;}
+
+document.getElementById('urlImgBtn').onclick=function(){
+  if(editingIndex<0)return;
+  var url=prompt('Paste image URL:');
+  if(!url)return;
+  url=url.trim();
+  if(!url)return;
+  /* Save it */
+  getData()[editingIndex].image=url;
+  saveData();
+  renderOcean();
+  /* Update the modal preview */
+  bigImageArea.innerHTML='';
+  var testImg=new Image();
+  testImg.onload=function(){
+    var img=document.createElement('img');
+    img.src=url;
+    bigImageArea.appendChild(img);
+  };
+  testImg.onerror=function(){
+    alert("Couldn't load that image. Check the URL.");
+  };
+  testImg.src=url;
+};
+  bigImageArea.onclick=function(){
+  if(editingIndex<0)return;
+  var input=document.createElement('input');input.type='file';input.accept='image/*';
+  input.onchange=function(e){
+    var file=e.target.files[0];if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      getData()[editingIndex].image=ev.target.result;saveData();renderOcean();
+      bigImageArea.innerHTML='';
+      var img=document.createElement('img');img.src=ev.target.result;bigImageArea.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  };
+  input.click();
+};
+videoWrapper.onclick=function(){
+  if(editingIndex<0)return;var item=getData()[editingIndex];if(item.videoId)return;
+  var url=prompt('Enter YouTube URL or ID:');if(!url)return;
+  var vid=url.trim();
+  var patterns=[/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,/^([a-zA-Z0-9_-]{11})$/];
+  for(var i=0;i<patterns.length;i++){var m=vid.match(patterns[i]);if(m){vid=m[1];break;}}
+  if(!vid||vid.length!==11){alert('Bad YouTube ID');return;}
+  item.videoId=vid;saveData();
+  videoWrapper.innerHTML='';
+  var iframe=document.createElement('iframe');iframe.src='https://www.youtube.com/embed/'+vid+'?rel=0';iframe.allowFullscreen=true;videoWrapper.appendChild(iframe);
+};
+mapInput.oninput=function(){
+  var url=this.value.trim();
+  if(!url){
+    mapBox.innerHTML='<span class="map-empty">Add URL for a map</span>';
+    return;
+  }
+  mapBox.innerHTML='<img src="'+url+'" alt="map" onerror="this.parentNode.innerHTML=\'<span class=&quot;map-empty&quot;>Could not load image</span>\'">';
+};
+  dangerSlider.oninput=function(){
+  var val=parseInt(dangerSlider.value);
+  dangerBarFill.style.width=val+'%';
+  dangerBarFill.style.background=dangerColor(val);
+  dangerLabelText.textContent=dangerLabel(val)+' ('+val+'%)';
+};
+saveBtn.onclick=function(){
+  if(editingIndex<0)return;
+  var item=getData()[editingIndex];
+  item.name=nameInput.value.trim()||'Unnamed';
+  item.czech=czechInput.value.trim()||'';
+  item.sci=sciInput.value.trim()||'';
+  item.food=foodInput.value.trim()||'Unknown';
+  item.depth=parseInt(depthInput.value)||0;
+  item.description=descInput.value.trim()||'';
+  item.wiki=wikiInput.value.trim()||'';
+ item.map=mapInput.value.trim()||'';
+  item.dangerLevel=parseInt(dangerSlider.value);
+ /* IUCN already saved on click, no need to re-read */
+  saveData();renderOcean();closeModal();
+};
+closeModalBtn.onclick=closeModal;
+modalOverlay.onclick=function(e){if(e.target===modalOverlay)closeModal();};
+
+addSharkBtn.onclick=function(){
+  var newItem={name:currentMode==='dino'?'New Dino':'New Shark',image:null,food:'',description:'',depth:100,dangerLevel:0,videoId:null};
+  getData().push(newItem);saveData();renderOcean();
+  openModal(getData().length-1);
+};
+
+/* ---------- MODE SWITCH ---------- */
+function applyModeUI(){
+  var isDino=currentMode==='dino';
+  document.body.classList.toggle('mode-dino',isDino);
+  document.body.classList.toggle('mode-shark',!isDino);
+  addBtnLabel.textContent=isDino?'Add Dinosaur':'Add Shark';
+ document.getElementById('openFishermanBtn').style.display=isDino?'none':'block';
+document.getElementById('openHenBtn').style.display=isDino?'block':'none';
+  depthLabel.textContent=isDino?'Millions of years ago':'Depth (meters)';
+  czechLabel.textContent=isDino?'Czech name':'Czech name';
+  sciLabel.textContent=isDino?'Scientific name':'Scientific name';
+  shopTitle.textContent=isDino?'Prehistoric shop':'Pirate shop';
+ /* Hide IUCN + map in dino mode */
+var iucnRow=iucnScale.parentNode;
+var mapRow=mapBox.parentNode;
+if(isDino){
+  iucnRow.style.display='none';
+  mapRow.style.display='none';
+}else{
+  iucnRow.style.display='flex';
+  mapRow.style.display='flex';
+  }
+  document.getElementById('fishTitle').textContent=isDino?'🐔 Magic Hen':'🎣 The Fisherman';
+  shopSubtitle.textContent=isDino?'Go catch those dinos, matey!':'Go catch those fish, matey!';
+  jokeName.textContent=isDino?'Dino Joke':'Sea Joke';
+  factName.textContent=isDino?'Dino Fact':'Sea Fact';
+  shopArrr.textContent=isDino?'Rawrrrrrr!':'Arrrrrrrrr!';
+  modeSharkBtn.classList.toggle('active',!isDino);
+  modeDinoBtn.classList.toggle('active',isDino);
+  document.querySelectorAll('.shark-card').forEach(function(c){c.classList.add('card-hidden');});
+  updateBg();
+  setTimeout(function(){
+    renderOcean();
+    setTimeout(function(){
+      document.querySelectorAll('.shark-card').forEach(function(c){c.classList.remove('card-hidden');});
+    },50);
+  },300);
+}
+function switchMode(mode){
+  if(mode===currentMode)return;
+  currentMode=mode;saveMode();
+  applyModeUI();
+}
+modeSharkBtn.onclick=function(){switchMode('shark');};
+modeDinoBtn.onclick=function(){switchMode('dino');};
+
+/* ---------- DEPTH / BG ---------- */
+var oceanBg=document.getElementById('oceanBg');
+function updateBg(){
+  var scrollY=window.scrollY;
+  var maxScroll=document.documentElement.scrollHeight-window.innerHeight;
+  var prog=maxScroll>0?Math.min(scrollY/maxScroll,1):0;
+  var eased=Math.sqrt(prog);
+  var r,g,b;
+  if(currentMode==='dino'){
+    /* Dinos: fixed green, no gradient darkening */
+    r=170;g=220;b=130;
+  }else{
+    r=Math.round(90+(15-90)*eased);
+    g=Math.round(180+(60-180)*eased);
+    b=Math.round(230+(110-230)*eased);
+  }
+  oceanBg.style.background='linear-gradient(to bottom,rgb('+r+','+g+','+b+'),rgb('+Math.round(r*0.85)+','+Math.round(g*0.85)+','+Math.round(b*0.9)+'))';
+  var bc=document.getElementById('bubblesContainer');
+  /* Dino mode: bubbles never fade. Shark mode: fade when deep */
+  if(currentMode==='shark' && prog>0.75){bc.classList.add('fade');}
+  else{bc.classList.remove('fade');}
+  var scale=document.getElementById('depthScale');
+  var labels=scale.querySelectorAll('.depth-label');
+  for(var k=0;k<labels.length;k++){
+    var lab=labels[k];
+    var docTop=parseFloat(lab.dataset.docTop||0)+90;
+    var posInViewport=docTop-scrollY;
+    lab.style.top=posInViewport+'px';
+    if(posInViewport<-30||posInViewport>window.innerHeight+30){lab.style.opacity='0';}
+    else{lab.style.opacity='0.95';}
+  }
+  }
+function updateDepth(){updateBg();}
+window.addEventListener('scroll',updateBg,{passive:true});
+window.addEventListener('resize',function(){renderOcean();updateBg();});/* ---------- SHOP ---------- */
+var seaJokes=[
+{r:"common",t:"Why did the shark cross the ocean? To get to the other tide!"},
+{r:"common",t:"What do you call a fish with no eyes? A fsh!"},
+{r:"common",t:"Why don't oysters share? Because they're shellfish!"},
+{r:"common",t:"What did the ocean say to the beach? Nothing, it just waved."},
+{r:"common",t:"Why did the crab never share? Because he's a little shellfish."},
+{r:"common",t:"How do fish get to school? By octobus!"},
+{r:"common",t:"Why are fish so smart? Because they live in schools!"},
+{r:"common",t:"What kind of money do fish use? Sand dollars!"},
+{r:"common",t:"How do you communicate with a fish? Drop it a line!"},
+{r:"common",t:"What did the fish say when it hit a wall? Dam!"},
+{r:"uncommon",t:"What's a shark's favorite game? Swallow the leader!"},
+{r:"uncommon",t:"What do you call a lazy crayfish? A slobster!"},
+{r:"uncommon",t:"Why did the sardine call the submarine? Because it couldn't sea!"},
+{r:"uncommon",t:"Why do seagulls fly over the sea? Because if they flew over the bay they'd be bagels!"},
+{r:"uncommon",t:"Why don't fish play basketball? Because they're afraid of the net!"},
+{r:"rare",t:"What does a shark eat with peanut butter? Jellyfish!"},
+{r:"rare",t:"Why are dolphins so popular? Because they're fin-tastic!"},
+{r:"rare",t:"What's a pirate's favorite fish? A barrrr-acuda!"},
+{r:"epic",t:"What's a mermaid's favorite subject? Algae-bra!"},
+{r:"legendary",t:"Why did the whale cross the ocean? To get to the other tide!"}
+];
+var seaFacts=[
+{r:"common",t:"Sharks have been around longer than trees — over 400 million years."},
+{r:"common",t:"The whale shark is the largest fish in the world, reaching up to 18 meters."},
+{r:"common",t:"Sharks can detect a single drop of blood in 100 liters of water."},
+{r:"common",t:"A shark's skeleton is made of cartilage, not bone."},
+{r:"common",t:"Sharks can't chew — they swallow food whole or tear it apart."},
+{r:"common",t:"The ocean covers about 71% of Earth's surface."},
+{r:"common",t:"An octopus has three hearts and blue blood."},
+{r:"common",t:"Starfish don't have brains."},
+{r:"uncommon",t:"Some sharks glow in the dark thanks to bioluminescence."},
+{r:"uncommon",t:"The Greenland shark can live for over 400 years."},
+{r:"uncommon",t:"Hammerhead sharks can see nearly 360 degrees around them."},
+{r:"uncommon",t:"More than 80% of the ocean has never been mapped or explored."},
+{r:"uncommon",t:"Seahorses are the only fish where the male gets pregnant and gives birth."},
+{r:"uncommon",t:"A group of jellyfish is called a smack."},
+{r:"rare",t:"The deepest point on Earth is the Mariana Trench — about 11,000 meters deep."},
+{r:"rare",t:"Blue whales are the largest animals to have ever lived — bigger than any dinosaur."},
+{r:"rare",t:"Sea turtles can live for over 100 years."},
+{r:"epic",t:"Some deep-sea fish can produce their own light called bioluminescence."},
+{r:"epic",t:"The Pacific Ocean is the largest and deepest ocean on Earth."},
+{r:"legendary",t:"Corals are actually animals, not plants."}
+];
+var dinoJokes=[
+{r:"common",t:"Why did the T-Rex break up with the stegosaurus? He was too clingy."},
+{r:"common",t:"What do you call a dinosaur that crashes their car? Tyrannosaurus Wrecks!"},
+{r:"common",t:"Why can't you hear a pterodactyl go to the bathroom? Because the P is silent."},
+{r:"common",t:"What was the scariest dinosaur? The Terror-dactyl."},
+{r:"common",t:"Why did the dinosaur cross the road? Because chickens hadn't evolved yet."},
+{r:"common",t:"What do you call a dinosaur that sleeps through everything? A dino-snore!"},
+{r:"common",t:"What's a dinosaur's favorite ice cream? Tricera-tops!"},
+{r:"common",t:"Why do museums put dinosaur bones on display? Because they can't fit them in the closet."},
+{r:"uncommon",t:"What do you call a dinosaur with an extensive vocabulary? A thesaurus."},
+{r:"uncommon",t:"What do you get when a dinosaur sneezes? Out of the way!"},
+{r:"uncommon",t:"Why did the velociraptor cross the road? To get to the other side, obviously."},
+{r:"uncommon",t:"What did the dinosaur say when he saw the volcano? 'I lava this place.'"},
+{r:"rare",t:"What do you call a sleeping T-Rex? A dino-snore. Wait — a T-irritable."},
+{r:"rare",t:"What's a dinosaur's least favorite reindeer? Comet. That's why they went extinct."},
+{r:"epic",t:"Why don't dinosaurs ever get married? They prefer to stay single and never go extinct."},
+{r:"legendary",t:"What did the T-Rex say when it met the meteorite? 'Oh no.' (last words)"}
+];
+var dinoFacts=[
+{r:"common",t:"Dinosaurs lived on Earth for over 165 million years."},
+{r:"common",t:"The word 'dinosaur' means 'terrible lizard' in Greek."},
+{r:"common",t:"Tyrannosaurus Rex lived about 66 million years ago."},
+{r:"common",t:"Birds are the closest living relatives of dinosaurs."},
+{r:"common",t:"Some dinosaurs had feathers."},
+{r:"common",t:"The Stegosaurus had a brain the size of a walnut."},
+{r:"common",t:"Dinosaurs went extinct about 66 million years ago."},
+{r:"uncommon",t:"The largest dinosaur ever discovered is the Argentinosaurus — up to 40 meters long."},
+{r:"uncommon",t:"The Velociraptor was only about the size of a turkey."},
+{r:"uncommon",t:"Most dinosaurs were herbivores, not predators."},
+{r:"uncommon",t:"Asteroid impact is the leading theory for dinosaur extinction."},
+{r:"uncommon",t:"Pteranodon was a pterosaur, not a dinosaur."},
+{r:"rare",t:"Some dinosaurs had warm blood, like modern birds."},
+{r:"rare",t:"The Stegosaurus's back plates were likely used for display, not defense."},
+{r:"rare",t:"Mosasaurus lived during the Late Cretaceous period, swimming in shallow seas."},
+{r:"epic",t:"The Chicxulub crater in Mexico marks the asteroid impact that ended the dinosaurs."},
+{r:"legendary",t:"Tyrannosaurus Rex could bite with a force of up to 8,000 pounds."}
+];
+
+var seenJokes=[],seenFacts=[],inventory=[];
+try{var sj=localStorage.getItem('sharkAppSeenJokes');if(sj){seenJokes=JSON.parse(sj)||[];}}catch(e){}
+try{var sf=localStorage.getItem('sharkAppSeenFacts');if(sf){seenFacts=JSON.parse(sf)||[];}}catch(e){}
+try{var inv=localStorage.getItem('sharkAppInventory');if(inv){inventory=JSON.parse(inv)||[];}}catch(e){}
+function saveShopState(){
+  try{localStorage.setItem('sharkAppSeenJokes',JSON.stringify(seenJokes));}catch(e){}
+  try{localStorage.setItem('sharkAppSeenFacts',JSON.stringify(seenFacts));}catch(e){}
+  try{localStorage.setItem('sharkAppInventory',JSON.stringify(inventory));}catch(e){}
+}
+function showShopResult(text){
+  var r=document.getElementById('shopResult');
+  r.textContent=text;r.classList.remove('show');void r.offsetWidth;r.classList.add('show');
+}
+var RARITY_WEIGHT={common:60,uncommon:25,rare:10,epic:4,legendary:1};
+function pickUnseen(list,seen){
+  var unseen=[];
+  for(var i=0;i<list.length;i++){if(seen.indexOf(i)===-1)unseen.push(i);}
+  if(unseen.length===0){seen.length=0;for(var j=0;j<list.length;j++)unseen.push(j);}
+  var total=0;
+  for(var k=0;k<unseen.length;k++){total+=(RARITY_WEIGHT[list[unseen[k]].r]||1);}
+  var roll=Math.random()*total,acc=0,chosen=unseen[0];
+  for(var m=0;m<unseen.length;m++){acc+=(RARITY_WEIGHT[list[unseen[m]].r]||1);if(roll<=acc){chosen=unseen[m];break;}}
+  seen.push(chosen);return list[chosen];
+}
+function renderInventory(){
+  var box=document.getElementById('inventoryList');
+  if(!inventory.length){box.innerHTML='<div class="inv-empty">Nothing yet, matey. Buy something first!</div>';return;}
+  var seaJ=[],seaF=[],dinoJ=[],dinoF=[];
+  for(var i=0;i<inventory.length;i++){
+    var t=inventory[i].type;
+    if(t==='Sea Joke')seaJ.push(inventory[i]);
+    else if(t==='Sea Fact')seaF.push(inventory[i]);
+    else if(t==='Dino Joke')dinoJ.push(inventory[i]);
+    else if(t==='Dino Fact')dinoF.push(inventory[i]);
+  }
+  var html='';
+  function section(title,items){
+    if(!items.length)return '';
+    var s='<div class="inv-cat"><div class="inv-cat-title">'+title+' ('+items.length+')</div>';
+    for(var k=items.length-1;k>=0;k--){
+      s+='<div class="inv-item '+items[k].rarity+'"><span class="inv-tag">'+items[k].rarity+'</span>'+items[k].text+'</div>';
+    }
+    s+='</div>';
+    return s;
+  }
+  html+=section('🦈 Sea Jokes',seaJ);
+  html+=section('🌊 Sea Facts',seaF);
+  html+=section('🦖 Dino Jokes',dinoJ);
+  html+=section('🦴 Dino Facts',dinoF);
+  box.innerHTML=html;
+  }
+document.getElementById('buyJokeBtn').onclick=function(){
+  if(coins<100){showShopResult("Ye need 100 coins for that, matey!");return;}
+  coins-=100;updateCoinsDisplay();saveCoins();
+  var list=currentMode==='dino'?dinoJokes:seaJokes;
+  var joke=pickUnseen(list,seenJokes);
+  inventory.push({type:currentMode==='dino'?'Dino Joke':'Sea Joke',rarity:joke.r,text:joke.t});
+  saveShopState();
+  showShopResult("🦜 ["+joke.r.toUpperCase()+"] "+joke.t);
+};
+document.getElementById('buyFactBtn').onclick=function(){
+  if(coins<200){showShopResult("Ye need 200 coins for that, matey!");return;}
+  coins-=200;updateCoinsDisplay();saveCoins();
+  var list=currentMode==='dino'?dinoFacts:seaFacts;
+  var fact=pickUnseen(list,seenFacts);
+  inventory.push({type:currentMode==='dino'?'Dino Fact':'Sea Fact',rarity:fact.r,text:fact.t});
+  saveShopState();
+  showShopResult("📜 ["+fact.r.toUpperCase()+"] "+fact.t);
+};
+document.getElementById('tabBuy').onclick=function(){
+  document.getElementById('tabBuy').classList.add('active');
+  document.getElementById('tabInv').classList.remove('active');
+  document.getElementById('panelBuy').classList.add('active');
+  document.getElementById('panelInv').classList.remove('active');
+};
+document.getElementById('tabInv').onclick=function(){
+  document.getElementById('tabInv').classList.add('active');
+  document.getElementById('tabBuy').classList.remove('active');
+  document.getElementById('panelInv').classList.add('active');
+  document.getElementById('panelBuy').classList.remove('active');
+  renderInventory();
+};
+coinsDisplay.onclick=function(){
+  shopOverlay.classList.add('show');
+  shopArrr.classList.remove('play');void shopArrr.offsetWidth;shopArrr.classList.add('play');
+};
+shopCloseBtn.onclick=function(){shopOverlay.classList.remove('show');};
+shopOverlay.onclick=function(e){if(e.target===shopOverlay)shopOverlay.classList.remove('show');};
+
+/* ---------- FISHERMAN ---------- */
+var fishOverlay=document.getElementById('fishOverlay');
+var fishCloseBtn=document.getElementById('fishCloseBtn');
+var openFishermanBtn=document.getElementById('openFishermanBtn');
+var speechBubble=document.getElementById('speechBubble');
+var fishItems=document.getElementById('fishItems');
+var fishermanBody=document.getElementById('fishermanBody');
+var closedBar=document.getElementById('closedBar');
+var closedCountdown=document.getElementById('closedCountdown');
+var catchBag={};
+try{var cb=localStorage.getItem('sharkAppCatchBag');if(cb){catchBag=JSON.parse(cb)||{};}}catch(e){}
+function saveCatchBag(){try{localStorage.setItem('sharkAppCatchBag',JSON.stringify(catchBag));}catch(e){}}
+var fishMood={mood:'normal',until:0,wants:null,hates:null,pissedUntil:0};
+try{var fm=localStorage.getItem('sharkAppFishMood');if(fm){fishMood=JSON.parse(fm)||fishMood;}}catch(e){}
+function saveFishMood(){try{localStorage.setItem('sharkAppFishMood',JSON.stringify(fishMood));}catch(e){}}
+var fishGreetingsHappy=["Ahoy, matey! What have ye brought me today?","Back again, are ye? Let's see the catch.","Arrr, business is good today!","What's this then? A fish? Aye, I'll take it.","Ye smell like the sea, matey. Show me yer haul.","Fresh catch, eh? Let's have a look.","Welcome back, sailor. My scales are ready.","Arrr! Bring me yer finest creatures."];
+var fishGreetingsAngry=["@#$&! Not today, matey!","%$#@ off! I'm not buying.","&*#$! Come back later!","@#$%! Bad day, bad fish.","*&^%$#! Leave me be!","!@#$%^&* — CLOSED!"];
+var fishGreetingsGrumpy=["I told you.","I told you.","I told you.","Told ye. Buyin' for 1 coin. Take it or leave it."];
+function randOf(arr){return arr[Math.floor(Math.random()*arr.length)];}
+var speechTimer=null,talkTimer=null;
+function showSpeech(text,isHen){
+  speechBubble.textContent=text;
+  speechBubble.classList.add('show');
+  if(isHen)speechBubble.classList.add('hen');else speechBubble.classList.remove('hen');
+  fishermanBody.classList.add('talking');
+  if(speechTimer)clearTimeout(speechTimer);
+  if(talkTimer)clearInterval(talkTimer);
+  var flaps=0;
+  talkTimer=setInterval(function(){
+    flaps++;
+    if(flaps>=8){clearInterval(talkTimer);talkTimer=null;fishermanBody.classList.remove('talking');}
+    else{fishermanBody.classList.toggle('talking');}
+  },500);
+  speechTimer=setTimeout(function(){
+    speechBubble.classList.remove('show');
+    if(talkTimer){clearInterval(talkTimer);talkTimer=null;}
+    fishermanBody.classList.remove('talking');
+  },4000);
+}
+function rollFishermanMood(){
+  var now=Date.now();
+  if(fishMood.until>now)return;
+  if(Math.random()<0.20){
+    fishMood.mood='angry';fishMood.until=now+20*60*1000;fishMood.pissedUntil=0;fishMood.wants=null;fishMood.hates=null;
+  }else{
+    fishMood.mood='normal';fishMood.until=now+30*60*1000;
+    var pool=seaCreatures.map(function(c){return c.e;});
+    fishMood.wants=pool[Math.floor(Math.random()*pool.length)];
+    var h=pool[Math.floor(Math.random()*pool.length)];
+    while(h===fishMood.wants){h=pool[Math.floor(Math.random()*pool.length)];}
+    fishMood.hates=h;
+  }
+  saveFishMood();
+}
+function getCatchPrice(emoji){
+  var creature=null;
+  for(var i=0;i<seaCreatures.length;i++){if(seaCreatures[i].e===emoji){creature=seaCreatures[i];break;}}
+  if(!creature)return 0;
+  var base=creature.coins;
+  if(fishMood.mood==='angry')return 0;
+  if(fishMood.pissedUntil && fishMood.pissedUntil>Date.now())return 1;
+  if(fishMood.wants===emoji)return Math.round(base*1.5);
+  if(fishMood.hates===emoji)return Math.round(base*0.25);
+  return base;
+}
+function renderFisherman(){
+  rollFishermanMood();
+  var now=Date.now();
+  var grumpy=(fishMood.pissedUntil && fishMood.pissedUntil>now);
+  if(fishMood.mood==='angry' && fishMood.until>now){
+    for(var ti=1;ti<=5;ti++)fishermanBody.classList.remove('angry-'+ti);
+    fishermanBody.classList.add('angry');
+    showSpeech(randOf(fishGreetingsAngry));
+    closedBar.classList.add('show');
+    startClosedCountdown();
+  }else{
+    if(fishMood.mood==='angry'){fishMood.mood='normal';fishMood.until=0;fishMood.wants=null;fishMood.hates=null;saveFishMood();rollFishermanMood();}
+    fishermanBody.classList.remove('angry');
+    closedBar.classList.remove('show');
+    stopClosedCountdown();
+    for(var ti2=1;ti2<=5;ti2++)fishermanBody.classList.remove('angry-'+ti2);
+    if(grumpy){fishermanBody.classList.add('angry-2');showSpeech(randOf(fishGreetingsGrumpy));}
+    else{showSpeech(randOf(fishGreetingsHappy));}
+  }
+  var moodTagHtml='';
+  if(grumpy){moodTagHtml='<div style="font-size:0.75rem;color:#e0a060;margin-bottom:8px;font-weight:700">☠️ Grumpy mode — everything for 1 coin</div>';}
+  else if(fishMood.mood==='normal' && fishMood.wants){
+    moodTagHtml='<div style="font-size:0.7rem;opacity:0.8;margin-bottom:8px">Wants: '+fishMood.wants+' (1.5×) · Hates: '+fishMood.hates+' (25%)</div>';
+  }
+  var html=moodTagHtml;
+  var keys=Object.keys(catchBag).filter(function(k){return catchBag[k]>0;});
+  if(!keys.length){html+='<div class="fish-empty">Yer bag be empty, matey. Go catch some!</div>';}
+  else{
+    keys.sort(function(a,b){return getCatchPrice(b)-getCatchPrice(a);});
+    for(var i=0;i<keys.length;i++){
+      var em=keys[i],count=catchBag[em],price=getCatchPrice(em);
+      var priceClass='',priceLabel=price+' 🪙 each',disabled=false;
+      if(fishMood.mood==='angry' && fishMood.until>Date.now()){priceClass='bad';priceLabel='@#$&';disabled=true;}
+      else if(fishMood.wants===em){priceClass='wanted';priceLabel='+'+price+' 🪙 each (wants!)';}
+      else if(fishMood.hates===em){priceClass='unwanted';priceLabel=price+' 🪙 each (hates)';}
+      html+='<div class="fish-item"><span class="fi-emoji">'+em+'</span><div class="fi-info"><span class="fi-name">Have: '+count+'</span><span class="fi-price '+priceClass+'">'+priceLabel+'</span></div><div class="fi-row"><div class="fi-qty"><button data-emoji="'+em+'" data-act="minus" '+(disabled?'disabled':'')+'>−</button><span class="fi-qty-num">1</span><button data-emoji="'+em+'" data-act="plus" '+(disabled?'disabled':'')+'>+</button></div><button class="fi-sell" data-emoji="'+em+'" data-act="sell" '+(disabled?'disabled':'')+'>Sell</button></div></div>';
+    }
+  }
+  fishItems.innerHTML=html;
+  var btns=fishItems.querySelectorAll('button[data-emoji]');
+  for(var s=0;s<btns.length;s++){
+    btns[s].onclick=function(){
+      var em=this.getAttribute('data-emoji'),act=this.getAttribute('data-act');
+      var qtyEl=this.parentNode.querySelector('.fi-qty-num');
+      var current=parseInt(qtyEl.textContent)||1;
+      var max=catchBag[em]||0;
+      if(act==='plus'){if(current<max)qtyEl.textContent=current+1;}
+      else if(act==='minus'){if(current>1)qtyEl.textContent=current-1;}
+      else if(act==='sell'){sellCatch(em,current);}
+    };
+  }
+}
+function sellCatch(emoji,qty){
+  if(fishMood.mood==='angry' && fishMood.until>Date.now())return;
+  var available=catchBag[emoji]||0;if(!available)return;
+  var amount=Math.min(qty||available,available);
+  var price=getCatchPrice(emoji);
+  coins+=price*amount;
+  catchBag[emoji]=available-amount;
+  updateCoinsDisplay();saveCoins();saveCatchBag();renderFisherman();
+}
+function panicSellAll(){
+  if(!(fishMood.mood==='angry' && fishMood.until>Date.now()))return;
+  var total=0;
+  var keys=Object.keys(catchBag);
+  for(var i=0;i<keys.length;i++){
+    var em=keys[i],count=catchBag[em]||0;if(count<=0)continue;
+    var creature=null;
+    for(var j=0;j<seaCreatures.length;j++){if(seaCreatures[j].e===em){creature=seaCreatures[j];break;}}
+    if(!creature)continue;
+    var half=Math.max(1,Math.round(creature.coins*0.5));
+    total+=half*count;catchBag[em]=0;
+  }
+  if(total<=0)return;
+  coins+=total;
+  fishMood.mood='normal';fishMood.until=0;fishMood.wants=null;fishMood.hates=null;
+  saveFishMood();saveCatchBag();updateCoinsDisplay();saveCoins();renderFisherman();
+}
+var closedTimer=null;
+function startClosedCountdown(){
+  stopClosedCountdown();
+  function tick(){
+    var remain=fishMood.until-Date.now();
+    if(remain<=0){stopClosedCountdown();renderFisherman();return;}
+    var min=Math.floor(remain/60000),sec=Math.floor((remain%60000)/1000);
+    closedCountdown.textContent=(min<10?'0':'')+min+':'+(sec<10?'0':'')+sec;
+  }
+  tick();
+  closedTimer=setInterval(tick,1000);
+}
+function stopClosedCountdown(){if(closedTimer){clearInterval(closedTimer);closedTimer=null;}}
+openFishermanBtn.onclick=function(){fishOverlay.classList.add('show');renderFisherman();};
+document.getElementById('openHenBtn').onclick=function(){henOverlay.classList.add('show');renderHen();};
+  fishCloseBtn.onclick=function(){fishOverlay.classList.remove('show');stopClosedCountdown();};
+fishOverlay.onclick=function(e){if(e.target===fishOverlay){fishOverlay.classList.remove('show');stopClosedCountdown();}};
+document.getElementById('panicSellBtn').onclick=function(){if(confirm('Sell EVERYTHING for 50% and calm him down?'))panicSellAll();};
+document.getElementById('calmBtn').onclick=function(){
+  if(coins<100){alert("Ye don't have 100 coins, matey!");return;}
+  if(!confirm('Pay 100 🪙 to calm him down?'))return;
+  coins-=100;updateCoinsDisplay();saveCoins();
+  fishMood.mood='normal';fishMood.until=0;fishMood.wants=null;fishMood.hates=null;
+  saveFishMood();renderFisherman();
+};
+var pokeCount=0,pokeThreshold=0;
+var pokes=["Oi! Stop pokin' me!","I'm not a sea pickle you should play with!","Ye best be buyin', not touchin'!","Hands off the fisherman!","Arrr! That tickles... and annoys me!","Poke me again, I dare ye!","I'm workin' here, matey!","One more poke and I'm closin' up!"];
+var redFadeTimer=null;
+function scheduleRedFade(){
+  if(redFadeTimer)clearTimeout(redFadeTimer);
+  redFadeTimer=setTimeout(function(){
+    for(var i=1;i<=5;i++)fishermanBody.classList.remove('angry-'+i);
+    pokeCount=0;
+  },10000);
+}
+function rollPokeThreshold(){pokeThreshold=5+Math.floor(Math.random()*6);pokeCount=0;}
+rollPokeThreshold();
+var stageTimer=null;
+function startStageFade(){
+  /* Every 10 seconds, drop one redness stage. Total = pokeCount * 10s. */
+  if(stageTimer)clearInterval(stageTimer);
+  var stages=Math.min(pokeCount,5);
+  stageTimer=setInterval(function(){
+    stages--;
+    if(stages<=0){
+      for(var i=1;i<=5;i++)fishermanBody.classList.remove('angry-'+i);
+      clearInterval(stageTimer);stageTimer=null;
+      pokeCount=0;
+    }else{
+      for(var j=1;j<=5;j++)fishermanBody.classList.remove('angry-'+j);
+      fishermanBody.classList.add('angry-'+stages);
+    }
+  },10000);
+}
+fishermanBody.onclick=function(){
+  if(fishMood.mood==='angry' && fishMood.until>Date.now())return;
+  pokeCount++;
+  fishermanBody.classList.add('pressed');
+  setTimeout(function(){fishermanBody.classList.remove('pressed');},120);
+  var progress=Math.min(pokeCount,5);
+  for(var i=1;i<=5;i++)fishermanBody.classList.remove('angry-'+i);
+  if(progress>=1)fishermanBody.classList.add('angry-'+Math.min(progress,5));
+  if(stageTimer)clearInterval(stageTimer);
+  startStageFade();
+  if(pokeCount>=pokeThreshold){
+    if(stageTimer){clearInterval(stageTimer);stageTimer=null;}
+    fishMood.mood='angry';
+    var angrySeconds=pokeCount*10;
+    fishMood.until=Date.now()+angrySeconds*1000;
+    fishMood.pissedUntil=Date.now()+60*60*1000;
+    fishMood.wants=null;fishMood.hates=null;
+    saveFishMood();
+    showSpeech("@#$&! THAT'S IT! CLOSED!");
+    rollPokeThreshold();
+    setTimeout(function(){renderFisherman();},800);
+  }else{
+    showSpeech(randOf(pokes));
+  }
+};
+
+/* ---------- HEN SELLER ---------- */
+var henOverlay=document.getElementById('henOverlay');
+var henCloseBtn=document.getElementById('henCloseBtn');
+var henSpeech=document.getElementById('henSpeech');
+var henItems=document.getElementById('henItems');
+var henBody=document.getElementById('henBody');
+var henPhrases=["Cocodaak!","Bwok bwok!","Cluck cluck!","Cocorico!","Bawk bawk!","Cocodaak cocodaak!","Brrrrawk!","Bwok!","Cluck!","Cock-a-doodle-doo!"];
+var henGreetings=["Welcome, dear! Let's see your finds.","Ah, a visitor! Cocodaak!","Well hello! Bwok bwok!","Come in, come in! What have you got?","So nice to see you! Cocorico!"];
+function henShowSpeech(text){
+  henSpeech.textContent=text;
+  henSpeech.classList.add('show');
+  henBody.classList.add('talking');
+  if(speechTimer)clearTimeout(speechTimer);
+  if(talkTimer)clearInterval(talkTimer);
+  var flaps=0;
+  talkTimer=setInterval(function(){
+    flaps++;
+    if(flaps>=8){clearInterval(talkTimer);talkTimer=null;henBody.classList.remove('talking');}
+    else{henBody.classList.toggle('talking');}
+  },500);
+  speechTimer=setTimeout(function(){
+    henSpeech.classList.remove('show');
+    if(talkTimer){clearInterval(talkTimer);talkTimer=null;}
+    henBody.classList.remove('talking');
+  },4000);
+}
+function henPrice(emoji){
+  var creature=null;
+  for(var i=0;i<dinoCreatures.length;i++){if(dinoCreatures[i].e===emoji){creature=dinoCreatures[i];break;}}
+  if(!creature)return 0;
+  return creature.coins;
+}
+function renderHen(){
+  var greet=randOf(henGreetings);
+  henShowSpeech(greet);
+  var html='';
+  var keys=Object.keys(catchBag).filter(function(k){return catchBag[k]>0;});
+  if(!keys.length){html+='<div class="fish-empty">Cocodaak! Nothing in yer bag yet, dear.</div>';}
+  else{
+    keys.sort(function(a,b){return henPrice(b)-henPrice(a);});
+    for(var i=0;i<keys.length;i++){
+      var em=keys[i],count=catchBag[em],price=henPrice(em);
+      html+='<div class="fish-item"><span class="fi-emoji">'+em+'</span><div class="fi-info"><span class="fi-name">Have: '+count+'</span><span class="fi-price">'+price+' 🪙 each</span></div><div class="fi-row"><div class="fi-qty"><button data-emoji="'+em+'" data-act="minus">−</button><span class="fi-qty-num">1</span><button data-emoji="'+em+'" data-act="plus">+</button></div><button class="fi-sell" data-emoji="'+em+'" data-act="sell">Sell</button></div></div>';
+    }
+  }
+  henItems.innerHTML=html;
+  var btns=henItems.querySelectorAll('button[data-emoji]');
+  for(var s=0;s<btns.length;s++){
+    btns[s].onclick=function(){
+      var em=this.getAttribute('data-emoji'),act=this.getAttribute('data-act');
+      var qtyEl=this.parentNode.querySelector('.fi-qty-num');
+      var current=parseInt(qtyEl.textContent)||1;
+      var max=catchBag[em]||0;
+      if(act==='plus'){if(current<max)qtyEl.textContent=current+1;}
+      else if(act==='minus'){if(current>1)qtyEl.textContent=current-1;}
+      else if(act==='sell'){henSell(em,current);}
+    };
+  }
+}
+henBody.onclick=function(){
+  henBody.classList.add('pressed');
+  setTimeout(function(){henBody.classList.remove('pressed');},120);
+  henShowSpeech(randOf(henPhrases));
+};
+  function henSell(emoji,qty){
+  var available=catchBag[emoji]||0;if(!available)return;
+  var amount=Math.min(qty||available,available);
+  var price=henPrice(emoji);
+  coins+=price*amount;
+  catchBag[emoji]=available-amount;
+  updateCoinsDisplay();saveCoins();saveCatchBag();renderHen();
+  henShowSpeech(randOf(henPhrases));
+}
+henCloseBtn.onclick=function(){henOverlay.classList.remove('show');};
+henOverlay.onclick=function(e){if(e.target===henOverlay)henOverlay.classList.remove('show');};
+
+/* ---------- CREATURES + SPAWN ---------- */
+var seaCreatures=[
+{e:'🐟',tier:'common',coins:3,weight:30},
+{e:'🐠',tier:'common',coins:3,weight:30},
+{e:'🐡',tier:'common',coins:3,weight:30},
+{e:'🐚',tier:'common',coins:3,weight:30},
+{e:'🦐',tier:'uncommon',coins:6,weight:15},
+{e:'🦀',tier:'uncommon',coins:6,weight:15},
+{e:'🦞',tier:'uncommon',coins:6,weight:15},
+{e:'🐙',tier:'uncommon',coins:6,weight:15},
+{e:'🐢',tier:'rare',coins:10,weight:7},
+{e:'🦑',tier:'rare',coins:10,weight:7},
+{e:'🐬',tier:'rare',coins:10,weight:7},
+{e:'🦭',tier:'rare',coins:10,weight:7},
+{e:'🦈',tier:'epic',coins:20,weight:3},
+{e:'🐳',tier:'epic',coins:20,weight:3},
+{e:'🐋',tier:'epic',coins:20,weight:3},
+{e:'🪼',tier:'legendary',coins:70,weight:1}
+];
+var dinoCreatures=[
+{e:'🪨',tier:'common',coins:3,weight:30},
+{e:'🦴',tier:'common',coins:3,weight:30},
+{e:'🌿',tier:'common',coins:3,weight:30},
+{e:'🥚',tier:'common',coins:3,weight:30},
+{e:'🦎',tier:'uncommon',coins:6,weight:15},
+{e:'🐊',tier:'uncommon',coins:6,weight:15},
+{e:'🌋',tier:'rare',coins:10,weight:7},
+{e:'🦅',tier:'rare',coins:10,weight:7},
+{e:'🦖',tier:'epic',coins:20,weight:3},
+{e:'🦕',tier:'epic',coins:20,weight:3},
+{e:'☄️',tier:'legendary',coins:70,weight:1}
+];
+var activeFish=[];
+function pickRandomCreature(){
+  var pool=currentMode==='dino'?dinoCreatures:seaCreatures;
+  var total=0;
+  for(var i=0;i<pool.length;i++)total+=pool[i].weight;
+  var roll=Math.random()*total,acc=0;
+  for(var j=0;j<pool.length;j++){acc+=pool[j].weight;if(roll<=acc)return pool[j];}
+  return pool[0];
+}
+function spawnFish(){
+  var creature=pickRandomCreature();
+  var f=document.createElement('div');f.className='fish';
+  f.textContent=creature.e;f.dataset.tier=creature.tier;
+  f.style.left=(Math.random()*80+10)+'%';
+  f.style.top=(window.innerHeight-60)+'px';
+  var duration=(Math.random()*6+8);
+  f.style.transition='transform '+duration+'s linear';
+  document.body.appendChild(f);
+  activeFish.push(f);
+  var driftX=(Math.random()-0.5)*60;
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      f.style.transform='translateY(-'+(window.innerHeight+100)+'px) translateX('+driftX+'px)';
+    });
+  });
+  f.onclick=function(e){e.stopPropagation();collectFish(f);};
+  setTimeout(function(){
+    if(f.parentNode){f.parentNode.removeChild(f);var idx=activeFish.indexOf(f);if(idx>-1)activeFish.splice(idx,1);}
+  },duration*1000+200);
+}
+function collectFish(f){
+  if(!f.parentNode)return;
+ /* Fisherman angry? Only affects shark mode. */
+if(currentMode==='shark' && fishMood.mood==='angry' && fishMood.until>Date.now()){
+  /* Can't collect — show angry popup */
+  var rect=f.getBoundingClientRect();
+  var popAngry=document.createElement('div');
+  popAngry.className='coin-pop';
+  popAngry.textContent='@#$&';
+  popAngry.style.color='#ff5050';
+  popAngry.style.left=(rect.left+rect.width/2)+'px';
+  popAngry.style.top=(rect.top+rect.height/2)+'px';
+  document.body.appendChild(popAngry);
+  setTimeout(function(){if(popAngry.parentNode)popAngry.parentNode.removeChild(popAngry);},1000);
+  return;
+}
+  var rect=f.getBoundingClientRect();
+  var cx=rect.left+rect.width/2;
+  var cy=rect.top+rect.height/2;
+  f.parentNode.removeChild(f);
+  var idx=activeFish.indexOf(f);
+  if(idx>-1)activeFish.splice(idx,1);
+  var emoji=f.textContent;
+  var tier=f.dataset.tier||'common';
+  catchBag[emoji]=(catchBag[emoji]||0)+1;
+  saveCatchBag();
+  var pop=document.createElement('div');
+  pop.className='coin-pop '+tier;
+  pop.textContent='+1 '+emoji;
+  pop.style.left=cx+'px';
+  pop.style.top=cy+'px';
+  document.body.appendChild(pop);
+  setTimeout(function(){if(pop.parentNode)pop.parentNode.removeChild(pop);},1200);
+}
+
+/* ---------- BUBBLES ---------- */
+function createBubbles(count){
+  var c=document.getElementById('bubblesContainer');
+  for(var i=0;i<count;i++){
+    var b=document.createElement('div');b.className='bubble';
+    var size=Math.random()*35+12;
+    b.style.width=size+'px';b.style.height=size+'px';
+    b.style.left=Math.random()*100+'%';
+    b.style.bottom=-(Math.random()*30+10)+'%';
+    b.style.animationDuration=(Math.random()*14+10)+'s';
+    b.style.animationDelay=(Math.random()*12)*-1+'s';
+    c.appendChild(b);
+  }
+}
+
+/* ---------- KEYBOARD ---------- */
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    if(modalOverlay.classList.contains('show'))closeModal();
+    if(shopOverlay.classList.contains('show'))shopOverlay.classList.remove('show');
+    if(fishOverlay.classList.contains('show')){fishOverlay.classList.remove('show');stopClosedCountdown();}
+    if(henOverlay.classList.contains('show'))henOverlay.classList.remove('show');
+  }
+});
+
+/* ---------- INIT ---------- */
+updateCoinsDisplay();
+applyModeUI();
+renderOcean();
+createBubbles(18);
+updateBg();
+setInterval(spawnFish,10000);
+setTimeout(spawnFish,1500);
+var SOUND_CATEGORIES=[
+{id:'bg_shark', label:'Shark background music'},
+{id:'bg_dino', label:'Dino background music'},
+{id:'catch_common', label:'Common catch'},
+{id:'catch_uncommon', label:'Uncommon catch'},
+{id:'catch_rare', label:'Rare catch'},
+{id:'catch_epic', label:'Epic catch'},
+{id:'catch_legendary', label:'Legendary catch'},
+{id:'shop_open', label:'Shop open'},
+{id:'buy_item', label:'Buy item'},
+{id:'modal_open', label:'Modal open'},
+{id:'modal_close', label:'Modal close'},
+{id:'fish_speaks', label:'Fisherman speaks'},
+{id:'fish_angry', label:'Fisherman angry'},
+{id:'fish_sells', label:'Fisherman sells'},
+{id:'hen_speaks', label:'Hen speaks'},
+{id:'hen_sells', label:'Hen sells'},
+{id:'mode_shark', label:'Switch to sharks'},
+{id:'mode_dino', label:'Switch to dinos'}
+];
+var soundSettings={};
+try{var _ss=localStorage.getItem('sharkAppSounds');if(_ss)soundSettings=JSON.parse(_ss)||{};}catch(e){}
+  try{var _ss=localStorage.getItem('sharkAppSounds');if(_ss)soundSettings=JSON.parse(_ss)||{};}catch(e){}
+  
+function buildSettingsUI(){
+  var scroll=document.getElementById('settingsScroll');
+  if(!scroll)return;
+  var html='';
+  for(var i=0;i<SOUND_CATEGORIES.length;i++){
+    var c=SOUND_CATEGORIES[i];
+    var s=soundSettings[c.id]||{};
+    var vol=(s.volume!=null)?s.volume:70;
+    var urlVal=s.url||'';
+    html+='<div class="snd-cat" data-id="'+c.id+'" style="background:rgba(0,0,0,0.3);border-radius:12px;padding:10px 12px;margin-bottom:10px">';
+    html+='<div style="font-size:0.85rem;font-weight:700;margin-bottom:6px">'+c.label+'</div>';
+    html+='<input type="text" class="snd-file" placeholder="e.g. shark-bg.mp3" value="'+(s.fileName||'')+'" style="width:100%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);color:#fff;padding:6px 10px;border-radius:8px;font-size:0.75rem;margin-bottom:6px;box-sizing:border-box">';
+    html+='<div style="display:flex;gap:6px;margin-bottom:6px">';
+html+='<button class="snd-test" style="background:#8a5a2a;border:none;color:#fff;padding:5px 10px;border-radius:8px;font-size:0.7rem;font-weight:700;cursor:pointer">▶ Test</button>';
+var fileInfo=s.fileName?(s.fileName+(s.fileSize?' ('+(s.fileSize/1024).toFixed(0)+' KB)':'')):'no file'; html+='<span style="font-size:0.65rem;opacity:0.6;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+fileInfo+'</span>';
+html+='</div>';
+html+='<div style="display:flex;align-items:center;gap:8px">';
+html+='<label style="font-size:0.7rem;opacity:0.7">🔊</label>';
+html+='<input type="range" min="0" max="100" value="'+vol+'" class="snd-vol" style="flex:1">';
+html+='<span style="font-size:0.65rem;opacity:0.8;min-width:32px;text-align:right">'+vol+'%</span>';
+html+='</div>';
+html+='</div>';
+  }
+  scroll.innerHTML=html;
+  var cats=scroll.querySelectorAll('.snd-cat');
+  for(var j=0;j<cats.length;j++){
+    (function(el){
+      var id=el.dataset.id;
+      var urlIn=el.querySelector('.snd-file');
+      var volIn=el.querySelector('.snd-vol');
+      urlIn.oninput=function(){   soundSettings[id]=soundSettings[id]||{};   soundSettings[id].fileName=urlIn.value.trim();   try{localStorage.setItem('sharkAppSounds',JSON.stringify(soundSettings));}catch(e){} };
+      volIn.oninput=function(){   soundSettings[id]=soundSettings[id]||{};   soundSettings[id].volume=parseInt(volIn.value);   el.querySelector('span:last-of-type').textContent=volIn.value+'%';   try{localStorage.setItem('sharkAppSounds',JSON.stringify(soundSettings));}catch(e){} };
+    el.querySelector('.snd-test').onclick=function(){   if(soundSettings[id]&&soundSettings[id].volume==null)soundSettings[id].volume=70;   /* Save first so playSound reads the latest URL */   try{localStorage.setItem('sharkAppSounds',JSON.stringify(soundSettings));}catch(e){}   playSound(id); };
+  /* Show total storage used */
+var totalBytes=0;
+for(var t in soundSettings){
+  if(soundSettings[t].fileSize)totalBytes+=soundSettings[t].fileSize;
+}
+if(totalBytes>0){
+  var info=document.createElement('div');
+  info.style.cssText='font-size:0.7rem;opacity:0.7;text-align:center;padding:10px 0;border-top:1px solid rgba(255,255,255,0.2);margin-top:10px';
+  info.textContent='Total audio storage: '+(totalBytes/1024).toFixed(0)+' KB';
+  scroll.appendChild(info);
+  } 
+    })(cats[j]);
+  }
+}
+
+  
+
+</script>
+<div id="settingsOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:900;display:none;align-items:center;justify-content:center;padding:14px">
+<div style="background:#4a4a4a;border:2px solid rgba(255,255,255,0.5);border-radius:22px;max-width:520px;width:100%;height:85vh;position:relative;color:#fff;padding:20px 18px 14px;display:flex;flex-direction:column;overflow:hidden">
+<button id="settingsCloseBtn" type="button" style="position:absolute;top:10px;right:14px;background:rgba(255,255,255,0.2);border:2px solid white;color:white;width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer;line-height:1;z-index:5">×</button>
+<h2 style="font-size:1.4rem;font-weight:800;text-align:center;margin-bottom:4px;color:#fff">⚙ Sound Settings</h2> <div style="display:flex;gap:6px;justify-content:center;margin-bottom:10px">   <button id="exportSoundsBtn" type="button" style="background:#2a6edb;border:none;color:#fff;padding:5px 10px;border-radius:8px;font-size:0.7rem;font-weight:700;cursor:pointer">💾 Export</button>   <button id="importSoundsBtn" type="button" style="background:#5a8f3a;border:none;color:#fff;padding:5px 10px;border-radius:8px;font-size:0.7rem;font-weight:700;cursor:pointer">📂 Import</button> </div>
+<div id="settingsScroll" style="flex:1;overflow-y:auto;padding-right:8px"></div>
+</div>
+</div>
+  <script>
+    document.getElementById('exportSoundsBtn').addEventListener('click',function(){
+  var json=JSON.stringify(soundSettings);
+  var ta=document.createElement('textarea');
+  ta.value=json;
+  ta.style.cssText='position:fixed;top:10%;left:5%;width:90%;height:70%;z-index:99999;background:#222;color:#0f0;font-size:0.7rem;padding:10px;border:2px solid #0f0;border-radius:10px;font-family:monospace';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try{document.execCommand('copy');}catch(e){}
+  var close=document.createElement('button');
+  close.textContent='✓ Close';
+  close.style.cssText='position:fixed;bottom:2%;left:50%;transform:translateX(-50%);z-index:100000;padding:12px 40px;font-size:1rem;background:#0f0;color:#000;border:none;border-radius:10px;font-weight:700;cursor:pointer';
+  close.onclick=function(){document.body.removeChild(ta);document.body.removeChild(close);};
+  document.body.appendChild(close);
+});
+
+document.getElementById('importSoundsBtn').addEventListener('click',function(){
+  var inp=document.createElement('input');
+  inp.type='file';inp.accept='.json,application/json';
+  inp.onchange=function(e){
+    var file=e.target.files[0];if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      try{
+        var data=JSON.parse(ev.target.result);
+        soundSettings=data;
+        try{localStorage.setItem('sharkAppSounds',JSON.stringify(soundSettings));}catch(err){alert('Import failed: storage full');return;}
+        if(typeof buildSettingsUI==='function')buildSettingsUI();
+        alert('Sounds imported!');
+      }catch(err){alert('Invalid backup file.');}
+    };
+    reader.readAsText(file);
+  };
+  inp.click();
+});
+document.getElementById('gearBtn').addEventListener('click',function(){
+  var so=document.getElementById('settingsOverlay');
+  if(typeof buildSettingsUI==='function')buildSettingsUI();
+  so.classList.add('show');
+});
+document.getElementById('settingsCloseBtn').addEventListener('click',function(){
+  document.getElementById('settingsOverlay').classList.remove('show');
+});
+document.getElementById('settingsOverlay').addEventListener('click',function(e){
+  if(e.target===this)this.classList.remove('show');
+});
+/* ==================== SOUND PLAYBACK ==================== */
+var currentBgAudio=null;
+var currentBgId=null;
+
+
+/* Keep one Audio per mode alive so it can pause/resume */
+var bgPlayers={bg_shark:null, bg_dino:null};
+
+function playSound(id){
+  var s=soundSettings[id];
+  if(!s)return;
+  var vol=(s.volume!=null)?s.volume:70;
+  if(vol<=0)return;
+  var isBg=(id==='bg_shark'||id==='bg_dino');
+
+  var fname=s.fileName||'';
+  if(!fname)return;
+  fname=fname.replace(/^sounds\//,'').trim();
+  if(!fname)return;
+  var path='sounds/'+fname;
+
+  if(isBg){
+    /* Pause whichever bg isn't this one */
+    var other=(id==='bg_shark')?'bg_dino':'bg_shark';
+    if(bgPlayers[other] && !bgPlayers[other].paused){try{bgPlayers[other].pause();}catch(e){}}
+
+    /* Create player if it doesn't exist yet */
+    if(!bgPlayers[id] || bgPlayers[id]._path!==path){
+      if(bgPlayers[id]){try{bgPlayers[id].pause();}catch(e){}}
+      var a=new Audio(path);
+      a.loop=true;
+      a._path=path;
+      bgPlayers[id]=a;
+    }
+    bgPlayers[id].volume=vol/100;
+    /* Resume from where it was paused */
+    if(bgPlayers[id].paused){
+      bgPlayers[id].play().catch(function(){});
+    }
+  }else{
+    /* Sound effect: one-shot, always new */
+    var a2=new Audio(path);
+    a2.volume=vol/100;
+    a2.play().catch(function(){});
+  }
+}
+
+    
+
+/* ---------- WIRE ALL EVENTS ---------- */
+
+/* Catching: hook into collectFish */
+var _origCollectFish=collectFish;
+collectFish=function(f){
+  var tier=f.getAttribute('data-tier')||'common';
+  playSound('catch_'+tier);
+  _origCollectFish(f);
+};
+
+/* Shop open */
+var _origCoinsHandler=coinsDisplay.onclick;
+coinsDisplay.onclick=function(e){
+  playSound('shop_open');
+  if(_origCoinsHandler)_origCoinsHandler.call(this,e);
+};
+
+/* Buy buttons */
+var _origBuyJoke=document.getElementById('buyJokeBtn').onclick;
+document.getElementById('buyJokeBtn').onclick=function(e){
+  playSound('buy_item');
+  if(_origBuyJoke)_origBuyJoke.call(this,e);
+};
+var _origBuyFact=document.getElementById('buyFactBtn').onclick;
+document.getElementById('buyFactBtn').onclick=function(e){
+  playSound('buy_item');
+  if(_origBuyFact)_origBuyFact.call(this,e);
+};
+
+/* Modal open/close */
+var _origOpenModal=openModal;
+openModal=function(i){playSound('modal_open');_origOpenModal(i);};
+var _origCloseModal=closeModal;
+closeModal=function(){playSound('modal_close');_origCloseModal();};
+
+/* Fisherman speaks */
+var _origShowSpeech=showSpeech;
+showSpeech=function(text,isHen){
+  /* Check for angry curse pattern */
+  if(/@#\$|%\$\#|&\*#|\*&\^|!@#/.test(text))playSound('fish_angry');
+  else playSound('fish_speaks');
+  _origShowSpeech(text,isHen);
+};
+
+/* Hen speaks */
+var _origHenShowSpeech=henShowSpeech;
+henShowSpeech=function(text){playSound('hen_speaks');_origHenShowSpeech(text);};
+
+/* Fisherman sells */
+var _origSellCatch=sellCatch;
+sellCatch=function(em,qty){playSound('fish_sells');_origSellCatch(em,qty);};
+
+/* Hen sells */
+var _origHenSell=henSell;
+henSell=function(em,qty){playSound('hen_sells');_origHenSell(em,qty);};
+
+/* Mode switch + background music */
+var _origSwitchMode=switchMode;
+switchMode=function(m){
+  if(m===currentMode)return;
+  playSound(m==='dino'?'mode_dino':'mode_shark');
+  _origSwitchMode(m);
+  /* Swap background music after mode switches */
+  setTimeout(function(){
+    if(currentMode==='dino')playSound('bg_dino');
+    else playSound('bg_shark');
+  },300);
+};
+
+/* Start background music on first user tap (browser autoplay policy) */
+var bgStarted=false;
+document.addEventListener('touchstart',function startBg(){
+  if(bgStarted)return;
+  bgStarted=true;
+  setTimeout(function(){
+    if(currentMode==='dino')playSound('bg_dino');
+    else playSound('bg_shark');
+  },500);
+},{once:true});
+document.addEventListener('click',function startBgClick(){
+  if(bgStarted)return;
+  bgStarted=true;
+  setTimeout(function(){
+    if(currentMode==='dino')playSound('bg_dino');
+    else playSound('bg_shark');
+  },500);
+},{once:true});
+  </script>
+</body>
+</html>
